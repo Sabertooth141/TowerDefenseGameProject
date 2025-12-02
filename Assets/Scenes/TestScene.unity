@@ -860,7 +860,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
@@ -987,8 +987,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   rotationSpeed: 5
+  timeToReset: 1
+  firingAngle: 3
+  loseLockAngle: 5
+  lockOnTime: 0.5
   turretHead: {fileID: 694969457}
   turretFiringPoint: {fileID: 477789805}
+  turretProjectile: {fileID: 904994249638994583, guid: 8e01940b68d352e4e8ad6b0cbb70290c, type: 3}
+  currTarget: {fileID: 0}
+  targets: []
 --- !u!135 &1582767930
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -1156,7 +1163,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2

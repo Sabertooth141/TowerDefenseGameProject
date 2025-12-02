@@ -1,26 +1,31 @@
-using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Entity.Turret.TurretStateMachine;
 using UnityEngine;
 
 public class TurretController : MonoBehaviour
 {
     public float rotationSpeed = 2.0f;
     public float timeToReset = 10.0f;
+    public float firingAngle = 3.0f;
+    public float loseLockAngle = 5.0f;
+    public float lockOnTime = 0.5f;
 
-    [SerializeField] private Transform turretHead;
-    [SerializeField] private Transform turretFiringPoint;
+    public Transform turretHead;
+    public Transform turretFiringPoint;
+    public GameObject turretProjectile;
 
-    private bool _hasTargets;
+    public bool HasTargets => targets.Count > 0;
     private float _resetTimer;
-    private GameObject _currTarget;
 
-    private List<GameObject> _targets;
+    [HideInInspector] public GameObject currTarget;
+    [HideInInspector] public List<GameObject> targets;
+
+    [HideInInspector] public TurretStateMachine StateMachine;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        _targets = new List<GameObject>();
+        targets = new List<GameObject>();
 
         if (turretHead == null)
         {
@@ -31,57 +36,32 @@ public class TurretController : MonoBehaviour
         {
             Debug.LogError("TurretFiringPoint field is missing");
         }
+
+        if (turretProjectile == null)
+        {
+            Debug.LogError("TurretProjectile field is missing");
+        }
+        
+        StateMachine = new TurretStateMachine();
+        StateMachine.ChangeState(new TurretIdleState(this));
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!_hasTargets)
-        {
-            _resetTimer += Time.deltaTime;
-            if (_resetTimer >= timeToReset)
-            {
-                ResetRotation();
-            }
-
-            return;
-        }
-
-        _resetTimer = 0;
-        
-        _currTarget = _targets[0];
-
-        TurnToTarget();
+        StateMachine.Update();
     }
 
-    private void ResetRotation()
+    public void Fire()
     {
-        Vector3 dir = Vector3.forward;
-
-        turretHead.rotation = Quaternion.Slerp(turretHead.rotation, Quaternion.LookRotation(dir),
-            rotationSpeed * Time.deltaTime);
-    }
-
-    private void TurnToTarget()
-    {
-        if (!_hasTargets)
-        {
-            return;
-        }
-
-        Vector3 dir = _currTarget.transform.position - turretFiringPoint.position;
-        dir.y = 0;
-
-        Quaternion rotAngle = Quaternion.LookRotation(dir);
-        turretHead.rotation = Quaternion.Slerp(turretHead.rotation, rotAngle, rotationSpeed * Time.deltaTime);
+        Instantiate(turretProjectile,  turretFiringPoint.position, turretFiringPoint.rotation);
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Enemy"))
         {
-            _targets.Add(other.gameObject);
-            _hasTargets = true;
+            targets.Add(other.gameObject);
         }
     }
 
@@ -89,8 +69,7 @@ public class TurretController : MonoBehaviour
     {
         if (other.CompareTag("Enemy"))
         {
-            _targets.Remove(other.gameObject);
-            _hasTargets = _targets.Count > 0;
+            targets.Remove(other.gameObject);
         }
     }
 }
