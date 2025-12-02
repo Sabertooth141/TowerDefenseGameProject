@@ -23,7 +23,7 @@ namespace Entity.Turret.TurretStateMachine
             if (_controller.HasTargets)
             {
                 _controller.currTarget = _controller.targets[0];
-                _controller.StateMachine.ChangeState(new TurretTrackingState(_controller));
+                _controller.stateMachine.ChangeState(new TurretTrackingState(_controller));
                 return;
             }
 

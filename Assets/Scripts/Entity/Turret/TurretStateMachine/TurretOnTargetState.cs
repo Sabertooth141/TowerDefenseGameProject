@@ -25,7 +25,7 @@ namespace Entity.Turret.TurretStateMachine
         {
             if (!_controller.HasTargets)
             {
-                _controller.StateMachine.ChangeState(new TurretIdleState(_controller));
+                _controller.stateMachine.ChangeState(new TurretIdleState(_controller));
                 return;
             }
 
@@ -47,7 +47,7 @@ namespace Entity.Turret.TurretStateMachine
             float angle = Quaternion.Angle(_controller.turretFiringPoint.rotation, rotAngle);
             if (angle > _controller.loseLockAngle)
             {
-                _controller.StateMachine.ChangeState(new TurretTrackingState(_controller));
+                _controller.stateMachine.ChangeState(new TurretTrackingState(_controller));
             }
         }
     }

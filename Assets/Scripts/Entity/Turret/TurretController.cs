@@ -2,74 +2,78 @@ using System.Collections.Generic;
 using Entity.Turret.TurretStateMachine;
 using UnityEngine;
 
-public class TurretController : MonoBehaviour
+namespace Entity.Turret
 {
-    public float rotationSpeed = 2.0f;
-    public float timeToReset = 10.0f;
-    public float firingAngle = 3.0f;
-    public float loseLockAngle = 5.0f;
-    public float lockOnTime = 0.5f;
-
-    public Transform turretHead;
-    public Transform turretFiringPoint;
-    public GameObject turretProjectile;
-
-    public bool HasTargets => targets.Count > 0;
-    private float _resetTimer;
-
-    [HideInInspector] public GameObject currTarget;
-    [HideInInspector] public List<GameObject> targets;
-
-    [HideInInspector] public TurretStateMachine StateMachine;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class TurretController : MonoBehaviour
     {
-        targets = new List<GameObject>();
+        public float rotationSpeed = 2.0f;
+        public float timeToReset = 10.0f;
+        public float firingAngle = 3.0f;
+        public float loseLockAngle = 5.0f;
+        public float lockOnTime = 0.5f;
 
-        if (turretHead == null)
-        {
-            Debug.LogError("TurretHead field is missing");
-        }
+        public Transform turretHead;
+        public Transform turretFiringPoint;
+        public GameObject turretProjectile;
 
-        if (turretFiringPoint == null)
-        {
-            Debug.LogError("TurretFiringPoint field is missing");
-        }
+        public bool HasTargets => targets.Count > 0;
+        private float _resetTimer;
 
-        if (turretProjectile == null)
+        [HideInInspector] public GameObject currTarget;
+        [HideInInspector] public List<GameObject> targets;
+
+        [HideInInspector] public TurretStateMachine.TurretStateMachine stateMachine;
+
+        // Start is called once before the first execution of Update after the MonoBehaviour is created
+        void Start()
         {
-            Debug.LogError("TurretProjectile field is missing");
-        }
+            targets = new List<GameObject>();
+
+            if (turretHead == null)
+            {
+                Debug.LogError("TurretHead field is missing");
+            }
+
+            if (turretFiringPoint == null)
+            {
+                Debug.LogError("TurretFiringPoint field is missing");
+            }
+
+            if (turretProjectile == null)
+            {
+                Debug.LogError("TurretProjectile field is missing");
+            }
         
-        StateMachine = new TurretStateMachine();
-        StateMachine.ChangeState(new TurretIdleState(this));
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        StateMachine.Update();
-    }
-
-    public void Fire()
-    {
-        Instantiate(turretProjectile,  turretFiringPoint.position, turretFiringPoint.rotation);
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Enemy"))
-        {
-            targets.Add(other.gameObject);
+            stateMachine = new TurretStateMachine.TurretStateMachine();
+            stateMachine.ChangeState(new TurretIdleState(this));
         }
-    }
 
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Enemy"))
+        // Update is called once per frame
+        void Update()
         {
-            targets.Remove(other.gameObject);
+            stateMachine.Update();
+        }
+
+        public void Fire()
+        {
+            Instantiate(turretProjectile,  turretFiringPoint.position, turretFiringPoint.rotation);
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.CompareTag("Enemy"))
+            {
+                targets.Add(other.gameObject);
+            }
+        }
+
+        private void OnTriggerExit(Collider other)
+        {
+            if (other.CompareTag("Enemy"))
+            {
+                targets.Remove(other.gameObject);
+                stateMachine.ChangeState(new TurretIdleState(this));
+            }
         }
     }
 }
