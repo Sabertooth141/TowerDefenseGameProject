@@ -986,7 +986,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94319c6e4417a2f43a11ce498afe7fde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  rotationSpeed: 5
+  rotationSpeed: 20
   timeToReset: 1
   firingAngle: 3
   loseLockAngle: 5
@@ -1141,6 +1141,7 @@ GameObject:
   - component: {fileID: 2070455480}
   - component: {fileID: 2070455479}
   - component: {fileID: 2070455483}
+  - component: {fileID: 2070455484}
   m_Layer: 0
   m_Name: Target1
   m_TagString: Enemy
@@ -1269,6 +1270,20 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &2070455484
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2070455478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bedf4ca443342c14f97147f8aeaadde3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Entity.TestTargetController
+  maxHp: 100
+  currHp: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

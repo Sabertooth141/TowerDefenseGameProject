@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using Entity.Turret.TurretStateMachine;
+using EventSystem;
 using UnityEngine;
 
 namespace Entity.Turret
@@ -43,9 +45,19 @@ namespace Entity.Turret
             {
                 Debug.LogError("TurretProjectile field is missing");
             }
-        
+
             stateMachine = new TurretStateMachine.TurretStateMachine();
             stateMachine.ChangeState(new TurretIdleState(this));
+        }
+
+        private void OnEnable()
+        {
+            EventHub.OnEnemyDied += HandleEnemyDied;
+        }
+
+        private void OnDisable()
+        {
+            EventHub.OnEnemyDied -= HandleEnemyDied;
         }
 
         // Update is called once per frame
@@ -54,9 +66,15 @@ namespace Entity.Turret
             stateMachine.Update();
         }
 
+        private void HandleEnemyDied(Entity entity)
+        {
+            targets.Remove(entity.gameObject);
+            stateMachine.ChangeState(new TurretIdleState(this));
+        }
+
         public void Fire()
         {
-            Instantiate(turretProjectile,  turretFiringPoint.position, turretFiringPoint.rotation);
+            Instantiate(turretProjectile, turretFiringPoint.position, turretFiringPoint.rotation);
         }
 
         private void OnTriggerEnter(Collider other)
@@ -69,11 +87,13 @@ namespace Entity.Turret
 
         private void OnTriggerExit(Collider other)
         {
-            if (other.CompareTag("Enemy"))
+            if (!other.CompareTag("Enemy"))
             {
-                targets.Remove(other.gameObject);
-                stateMachine.ChangeState(new TurretIdleState(this));
+                return;
             }
+
+            targets.Remove(other.gameObject);
+            stateMachine.ChangeState(new TurretIdleState(this));
         }
     }
 }
