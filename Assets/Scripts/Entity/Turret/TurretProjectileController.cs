@@ -30,9 +30,9 @@ namespace Entity.Turret
 
         private void OnTriggerEnter(Collider other)
         {
+            // CHANGE LATER TEMPORARY
             if (!other.gameObject.CompareTag("Enemy"))
             {
-                Destroy(gameObject);
                 return;
             }
 

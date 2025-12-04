@@ -26,16 +26,19 @@ namespace Entity.Turret.TurretStateMachine
 
             if (_controller.currTarget == null)
             {
-                _controller.currTarget = _controller.targets[0];
+                _controller.stateMachine.ChangeState(new TurretIdleState(_controller));
+                return;
             }
             
             Vector3 dir = _controller.currTarget.transform.position - _controller.turretFiringPoint.position;
-            dir.y = 0;
+            // dir.y = 0;
 
             Quaternion rotAngle = Quaternion.LookRotation(dir);
             _controller.turretHead.rotation = Quaternion.Slerp(_controller.turretHead.rotation, rotAngle, _controller.rotationSpeed * Time.deltaTime);
             
-            float angle = Quaternion.Angle(_controller.turretFiringPoint.rotation, rotAngle);
+            Vector3 angleToTarget = (_controller.currTarget.transform.position - _controller.turretFiringPoint.position).normalized;
+            float angle = Vector3.Angle(_controller.turretFiringPoint.forward, angleToTarget);
+
             if (angle < _controller.firingAngle)
             {
                 _controller.stateMachine.ChangeState(new TurretOnTargetState(_controller));

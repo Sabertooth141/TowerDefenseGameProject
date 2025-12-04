@@ -14,6 +14,10 @@ namespace Entity
             currHp = maxHp;
         }
 
+        protected virtual void Update()
+        {
+        }
+
         public virtual void TakeDamage(float damage)
         {
             Debug.Log("HURTING");

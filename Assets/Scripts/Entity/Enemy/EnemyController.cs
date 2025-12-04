@@ -11,8 +11,9 @@ namespace Entity.Enemy
             throw new NotImplementedException();
         }
 
-        private void Update()
+        protected override void Update()
         {
+            base.Update();
             throw new NotImplementedException();
         }
 
