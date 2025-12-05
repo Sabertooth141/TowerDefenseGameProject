@@ -10,6 +10,8 @@ namespace Entity.Player
         public Vector2 LookInput { get; private set; }
         public bool JumpPressed { get; private set; }
         public bool SprintPressed { get; private set; }
+        public bool AimPressed { get; private set; }
+        public bool ShootPressed  { get; private set; }
 
         private PlayerControls _controls;
 
@@ -28,6 +30,12 @@ namespace Entity.Player
             
             _controls.Player.Sprint.performed += ctx => SprintPressed = true;
             _controls.Player.Sprint.canceled += ctx => SprintPressed = false;
+            
+            _controls.Player.Aim.performed += ctx => AimPressed = true;
+            _controls.Player.Aim.canceled += ctx => AimPressed = false;
+            
+            _controls.Player.Shoot.performed += ctx => ShootPressed = true;
+            _controls.Player.Shoot.canceled += ctx => ShootPressed = false;
         }
 
         private void OnEnable()
