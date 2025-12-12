@@ -20,7 +20,6 @@ namespace Entity
 
         public virtual void TakeDamage(float damage)
         {
-            Debug.Log(gameObject.name + " takes " + damage + " damage");
             if (damage <= 0.0)
             {
                 return;

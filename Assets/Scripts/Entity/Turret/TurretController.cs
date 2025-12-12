@@ -96,7 +96,6 @@ namespace Entity.Turret
             
             if (Physics.Raycast(bulletRay, out RaycastHit hit, _range))
             {
-                Debug.Log(hit.transform.name);
                 if (hit.transform.CompareTag("Enemy"))
                 {
                     hit.transform.gameObject.GetComponent<Entity>().TakeDamage(damage);

@@ -1758,6 +1758,7 @@ GameObject:
   - component: {fileID: 895011057}
   - component: {fileID: 895011056}
   - component: {fileID: 895011061}
+  - component: {fileID: 895011062}
   m_Layer: 0
   m_Name: TestPlayerObj
   m_TagString: Untagged
@@ -1896,6 +1897,30 @@ MonoBehaviour:
   fireRate: 0.1
   damage: 20
   range: 200
+--- !u!114 &895011062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 895011055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afb2f976a415bfc45b7fd4ed289100c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  inputReader: {fileID: 895011059}
+  playerCam: {fileID: 950750238}
+  turretPrefabs:
+  - {fileID: 6127677091475512274, guid: 9d4040e242a61a044a0444388b956b55, type: 3}
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  maxSlopeAngle: 30
+  minClearanceDistance: 2
+  placementRange: 50
+  validMaterial: {fileID: 2100000, guid: 790ade019eb6fd94ca8d05676920daa9, type: 2}
+  invalidMaterial: {fileID: 2100000, guid: 920b794407bea89478332b9ea99a3061, type: 2}
 --- !u!1 &950750234
 GameObject:
   m_ObjectHideFlags: 0
@@ -2930,9 +2955,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   enemyPrefabs:
   - {fileID: 104225997565363063, guid: fcda673696711be41977266a24dda7ea, type: 3}
-  spawnRadius: 2
+  spawnRadius: 10
   maxEnemies: 10
-  checkInterval: 5
+  checkInterval: 0.5
 --- !u!1 &1535098657
 GameObject:
   m_ObjectHideFlags: 0
@@ -3941,6 +3966,10 @@ PrefabInstance:
     - target: {fileID: 4241369564773648339, guid: 9d4040e242a61a044a0444388b956b55, type: 3}
       propertyPath: m_Layer
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4302827916792104798, guid: 9d4040e242a61a044a0444388b956b55, type: 3}
+      propertyPath: damage
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 4302827916792104798, guid: 9d4040e242a61a044a0444388b956b55, type: 3}
       propertyPath: lockOnTime

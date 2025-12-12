@@ -280,16 +280,15 @@ namespace Entity.Player
 
         private void HandleJump()
         {
-            return;
-            if (_isJumping)
-            {
-                return;
-            }
-
-            Vector3 newVelocity = _rb.linearVelocity;
-            newVelocity.y = jumpSpeed;
-            _rb.linearVelocity = newVelocity;
-            _isJumping = true;
+            // if (_isJumping)
+            // {
+            //     return;
+            // }
+            //
+            // Vector3 newVelocity = _rb.linearVelocity;
+            // newVelocity.y = jumpSpeed;
+            // _rb.linearVelocity = newVelocity;
+            // _isJumping = true;
         }
     }
 }

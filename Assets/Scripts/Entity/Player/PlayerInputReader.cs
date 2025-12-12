@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Interactions;
 
 namespace Entity.Player
 {
@@ -11,31 +12,46 @@ namespace Entity.Player
         public bool JumpPressed { get; private set; }
         public bool SprintPressed { get; private set; }
         public bool AimPressed { get; private set; }
-        public bool ShootPressed  { get; private set; }
+        public bool ShootPressed { get; private set; }
+        public bool BuildingPressed { get; private set; }
 
         private PlayerControls _controls;
 
         private void Awake()
         {
             _controls = new PlayerControls();
-            
+
             _controls.Player.Move.performed += ctx => MovementInput = ctx.ReadValue<Vector2>();
             _controls.Player.Move.canceled += ctx => MovementInput = Vector2.zero;
-            
+
             _controls.Player.Look.performed += ctx => LookInput = ctx.ReadValue<Vector2>();
             _controls.Player.Look.canceled += ctx => LookInput = Vector2.zero;
-            
+
             _controls.Player.Jump.performed += ctx => JumpPressed = true;
             _controls.Player.Jump.canceled += ctx => JumpPressed = false;
-            
+
             _controls.Player.Sprint.performed += ctx => SprintPressed = true;
             _controls.Player.Sprint.canceled += ctx => SprintPressed = false;
-            
+
             _controls.Player.Aim.performed += ctx => AimPressed = true;
             _controls.Player.Aim.canceled += ctx => AimPressed = false;
-            
+
             _controls.Player.Shoot.performed += ctx => ShootPressed = true;
             _controls.Player.Shoot.canceled += ctx => ShootPressed = false;
+
+            _controls.Player.Building.performed += ctx =>
+            {
+                if (ctx.interaction is PressInteraction)
+                {
+                    BuildingPressed = true;
+                }
+            };
+            _controls.Player.Building.canceled += ctx => {
+                if (ctx.interaction is PressInteraction)
+                {
+                    BuildingPressed = false;
+                }
+            };
         }
 
         private void OnEnable()
