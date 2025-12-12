@@ -1,4 +1,5 @@
 ﻿using System;
+using EventSystem;
 using UnityEngine;
 
 namespace Entity.Enemy
@@ -8,23 +9,30 @@ namespace Entity.Enemy
 
         protected override void Start()
         {
-            throw new NotImplementedException();
+            base.Start();
+            EnemyManager.Instance.RegisterEnemy(this);
         }
 
+        // Update is called once per frame
         protected override void Update()
         {
             base.Update();
-            throw new NotImplementedException();
         }
 
         public override void TakeDamage(float damage)
         {
-            throw new NotImplementedException();
+            base.TakeDamage(damage);
         }
 
-        public override void Die()
+        protected override void Die()
         {
-            throw new NotImplementedException();
+            EventHub.TriggerEnemyDied(this);
+            base.Die();
+        }
+
+        private void OnDestroy()
+        {
+            EnemyManager.Instance?.UnregisterEnemy(this);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Entity
             base.TakeDamage(damage);
         }
 
-        public override void Die()
+        protected override void Die()
         {
             EventHub.TriggerEnemyDied(this);
             base.Die();

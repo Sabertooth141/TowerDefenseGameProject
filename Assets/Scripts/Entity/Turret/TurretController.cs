@@ -3,26 +3,31 @@ using System.Collections.Generic;
 using Entity.Turret.TurretStateMachine;
 using EventSystem;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Serialization;
 
 namespace Entity.Turret
 {
     public class TurretController : MonoBehaviour
     {
+        [Header("Turret Settings")]
         public LayerMask losMask;
         public float rotationSpeed = 2.0f;
         public float timeToReset = 10.0f;
         public float firingAngle = 3.0f;
         public float loseLockAngle = 5.0f;
-        public float lockOnTime = 0.5f;
+        public float lockOnTime = 0.5f; 
+        public float damage = 50.0f;
 
+        [Header("References")]
         public Transform turretHead;
         public Transform turretFiringPoint;
-        public GameObject turretProjectile;
+        public SphereCollider detectionCollider;
         public bool HasTargets => targets.Count > 0;
 
         private float _resetTimer;
         private List<GameObject> _targetsToCheck;
+        private float _range;
 
         [HideInInspector] public GameObject currTarget;
         [HideInInspector] public List<GameObject> targets;
@@ -45,13 +50,15 @@ namespace Entity.Turret
                 Debug.LogError("TurretFiringPoint field is missing");
             }
 
-            if (turretProjectile == null)
+            if (detectionCollider == null)
             {
-                Debug.LogError("TurretProjectile field is missing");
+                Debug.LogError("DetectionCollider field is missing");
             }
 
             stateMachine = new TurretStateMachine.TurretStateMachine();
             stateMachine.ChangeState(new TurretIdleState(this));
+
+            _range = detectionCollider.radius;
         }
 
         private void OnEnable()
@@ -85,7 +92,16 @@ namespace Entity.Turret
 
         public void Fire()
         {
-            Instantiate(turretProjectile, turretFiringPoint.position, turretFiringPoint.rotation);
+            Ray bulletRay = new Ray(turretFiringPoint.position, turretFiringPoint.forward);
+            
+            if (Physics.Raycast(bulletRay, out RaycastHit hit, _range))
+            {
+                Debug.Log(hit.transform.name);
+                if (hit.transform.CompareTag("Enemy"))
+                {
+                    hit.transform.gameObject.GetComponent<Entity>().TakeDamage(damage);
+                }
+            }
         }
 
         private bool LOSDetection(Transform target)
@@ -93,7 +109,7 @@ namespace Entity.Turret
             int maskToIgnore = ~losMask;
             Vector3 direction = (target.position - turretFiringPoint.position).normalized;
 
-            Debug.DrawRay(turretFiringPoint.position, direction * 100f, Color.red);
+            // Debug.DrawRay(turretFiringPoint.position, direction * 100f, Color.red);
             if (Physics.Raycast(turretFiringPoint.position, direction, out RaycastHit hit, Mathf.Infinity,
                     maskToIgnore))
             {

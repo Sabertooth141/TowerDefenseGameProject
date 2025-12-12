@@ -1,0 +1,53 @@
+using Entity.Player;
+using UnityEngine;
+
+public class PlayerWeaponController : MonoBehaviour
+{
+    [Header("References")]
+    public PlayerController playerController;
+    public CameraController cameraController;
+    [SerializeField] private PlayerInputReader inputReader;
+    public GameObject hitIndicate;
+    
+    [Header("Weapon Settings")]
+    public float fireRate = 0.1f;
+    public float damage = 20f;
+    public float range = 200f;
+
+    private float _nextFireTime = 0;
+    
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        if (inputReader == null)
+        {
+            Debug.LogError("PlayerWeaponController: input reader not found");
+        }
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (cameraController.IsAiming() && inputReader.ShootPressed && Time.time >= _nextFireTime)
+        {
+            Shoot();
+            _nextFireTime = Time.time + fireRate;
+        }
+    }
+
+    private void Shoot()
+    {
+        Ray shootRay = new Ray(cameraController.GetCameraTransform().position, cameraController.GetCameraDirection());
+
+        if (Physics.Raycast(shootRay, out RaycastHit hit, range))
+        {
+            Instantiate(hitIndicate, hit.point, hit.transform.rotation);
+            Debug.Log(hit.transform.name);
+            if (hit.transform.CompareTag("Enemy"))
+            {
+                hit.transform.gameObject.GetComponent<Entity.Entity>().TakeDamage(damage);
+            }
+        }
+    }
+    
+}

@@ -20,7 +20,7 @@ namespace Entity
 
         public virtual void TakeDamage(float damage)
         {
-            Debug.Log("HURTING");
+            Debug.Log(gameObject.name + " takes " + damage + " damage");
             if (damage <= 0.0)
             {
                 return;
@@ -36,7 +36,7 @@ namespace Entity
             Die();
         }
 
-        public virtual void Die()
+        protected virtual void Die()
         {
             Destroy(gameObject);
         }

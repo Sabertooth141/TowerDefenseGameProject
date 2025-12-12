@@ -11,8 +11,7 @@ GameObject:
   - component: {fileID: 1343451425115519233}
   - component: {fileID: 6880914959831055760}
   - component: {fileID: 3735863353471536166}
-  - component: {fileID: 108748042349051481}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Barrel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -90,27 +89,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &108748042349051481
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4241369564773648339}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4454087215990166954
 GameObject:
   m_ObjectHideFlags: 0
@@ -120,7 +98,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7720666760641817964}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: TurretHead
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -136,7 +114,7 @@ Transform:
   m_GameObject: {fileID: 4454087215990166954}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -155,8 +133,7 @@ GameObject:
   - component: {fileID: 8107001000778607370}
   - component: {fileID: 4191153272909650111}
   - component: {fileID: 5823995888654872844}
-  - component: {fileID: 1259334760176097274}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: TurretBase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -172,7 +149,7 @@ Transform:
   m_GameObject: {fileID: 4795406615582798755}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -1.25, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 2, y: 0.5, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -234,27 +211,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &1259334760176097274
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4795406615582798755}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6127677091475512274
 GameObject:
   m_ObjectHideFlags: 0
@@ -266,7 +222,7 @@ GameObject:
   - component: {fileID: 2707150209010077172}
   - component: {fileID: 4302827916792104798}
   - component: {fileID: 5686039485294390989}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Turret
   m_TagString: Turret
   m_Icon: {fileID: 0}
@@ -282,9 +238,9 @@ Transform:
   m_GameObject: {fileID: 6127677091475512274}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: -7.58}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 7720666760641817964}
   - {fileID: 8107001000778607370}
@@ -302,14 +258,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94319c6e4417a2f43a11ce498afe7fde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  losMask:
+    serializedVersion: 2
+    m_Bits: 4
   rotationSpeed: 20
   timeToReset: 1
   firingAngle: 3
   loseLockAngle: 5
-  lockOnTime: 0.5
+  lockOnTime: 0.2
+  damage: 50
   turretHead: {fileID: 7720666760641817964}
   turretFiringPoint: {fileID: 1343451425115519233}
-  turretProjectile: {fileID: 904994249638994583, guid: 8e01940b68d352e4e8ad6b0cbb70290c, type: 3}
+  detectionCollider: {fileID: 5686039485294390989}
   currTarget: {fileID: 0}
   targets: []
 --- !u!135 &5686039485294390989
@@ -331,7 +291,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 15
+  m_Radius: 70
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &7822860451203769503
 GameObject:
@@ -344,8 +304,7 @@ GameObject:
   - component: {fileID: 5772214473911468761}
   - component: {fileID: 3112683413466462199}
   - component: {fileID: 3299966374681592005}
-  - component: {fileID: 3883038057612156750}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -423,24 +382,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &3883038057612156750
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7822860451203769503}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}

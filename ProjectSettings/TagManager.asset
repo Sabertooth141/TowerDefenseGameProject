@@ -8,14 +8,16 @@ TagManager:
   - Turret
   - Obstacle
   - Projectile
+  - EnemyGoal
+  - EnemySpawnPoint
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
-  - 
+  - Wall
   - 
   - 
   - 

@@ -42,8 +42,19 @@ namespace Entity.Turret
                 return;
             }
             
+            Debug.Log("Hit: " + other.gameObject.name);
             other.gameObject.GetComponent<Entity>().TakeDamage(projectileDamage);
             Destroy(gameObject);
+        }
+        
+        public void SetProjectileSpeed(float speed)
+        {
+            projectileSpeed = speed;
+        }
+
+        public void SetProjectileDamage(float damage)
+        {
+            projectileDamage = damage;
         }
     }
 }

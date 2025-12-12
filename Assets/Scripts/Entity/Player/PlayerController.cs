@@ -7,44 +7,58 @@ namespace Entity.Player
 {
     public class PlayerController : Entity
     {
-        // [Header("Camera Controls")]
-        // [SerializeField] private Transform cam;
-        // [SerializeField] private Transform camPivot;
-        // public float mouseSensitivity = 120f;
-        // public float minPitch = -40f;
-        // public float maxPitch = 70f;
-        // public float camSnapSpd = 5.0f;
-        
-        [SerializeField]
-        private Transform playerModelTransform;
+        [Header("References")]
+        [SerializeField] private Transform playerModelTransform;
+        [SerializeField] private Transform cameraTransform;
+        [SerializeField] private CameraController cameraController;
 
         [Header("Movement Controls")]
         public float walkingSpeed = 10.0f;
+        public float aimWalkingSpeed = 8.0f;
         public float sprintSpeed = 20.0f;
         public float acceleration = 5.0f;
+        public float deceleration = 10.0f;
         public float rotationSpeed = 1.0f;
 
         [Header("Gravity / Jump")]
         public float gravity = -9.8f;
         public float groundCheckDist = 1.0f;
         public float jumpSpeed = 5.0f;
+        public float maxFallSpeed = 20.0f;
+        public LayerMask groundMask;
+
+        [Header("Slope Handling")]
+        public float maxSlopeAngle = 45.0f;
+        public float slopeForce = 8.0f;
+        public float drag = 5.0f;
 
         private Vector2 _input;
-        private float _currSpeed;
+        private RaycastHit _slopeHit;
+
         private bool _isJumping;
         private bool _isGrounded;
+        private bool _onSlope;
 
-        private float _pitch;
-        private float _yaw;
+        private float _currSpeed;
+        private Vector3 _moveDirection;
+        private Vector3 _currentVelocity;
+
+        //check ground param
+        private const float GroundRayOffset = 0.1f;
+        private const float GroundSphereYOffset = 0.1f;
+        private const float GroundSphereROffset = 0.9f;
+        //check slope param
+        private const float SlopeCheckOffset = 0.5f;
 
         private PlayerInputReader _inputReader;
         private Rigidbody _rb;
+        private CapsuleCollider _capsuleCollider;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         protected override void Start()
         {
             base.Start();
-            
+
             if (playerModelTransform == null)
             {
                 Debug.LogError("PlayerController: PlayerModelTransform is null");
@@ -59,16 +73,22 @@ namespace Entity.Player
             {
                 Debug.LogError("PlayerController: PlayerInput reader not found");
             }
+
+            if (cameraTransform == null)
+            {
+                Debug.LogError("PlayerController: CameraTransform not found");
+            }
         }
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
+            _inputReader = GetComponent<PlayerInputReader>();
+            _capsuleCollider = GetComponent<CapsuleCollider>();
+
             _rb.useGravity = false;
             _rb.isKinematic = false;
             _rb.freezeRotation = true;
-
-            _inputReader = GetComponent<PlayerInputReader>();
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -79,7 +99,8 @@ namespace Entity.Player
         protected override void Update()
         {
             base.Update();
-            HandleCam();
+
+            HandleRotation();
         }
 
         private void FixedUpdate()
@@ -87,8 +108,7 @@ namespace Entity.Player
             GroundCheck();
             HandleGravity();
             HandleMovement();
-            HandleSprint();
-            HandleRotation();
+            CheckSlope();
 
             if (_inputReader.JumpPressed)
             {
@@ -98,7 +118,42 @@ namespace Entity.Player
 
         private void HandleRotation()
         {
+            bool isAiming = cameraController != null && cameraController.IsAiming();
 
+            if (isAiming)
+            {
+                Vector3 lookDirection = cameraTransform.forward;
+                lookDirection.y = 0;
+
+                if (lookDirection != Vector3.zero)
+                {
+                    Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+
+                    playerModelTransform.rotation = Quaternion.Lerp(playerModelTransform.rotation, targetRotation,
+                        rotationSpeed * Time.deltaTime);
+                }
+            }
+            else if (_moveDirection != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(_moveDirection);
+
+                playerModelTransform.rotation = Quaternion.Lerp(playerModelTransform.rotation, targetRotation,
+                    rotationSpeed * Time.deltaTime);
+            }
+        }
+
+        private void CheckSlope()
+        {
+            if (Physics.Raycast(transform.position, Vector3.down, out _slopeHit,
+                    _capsuleCollider.height * 0.5f + SlopeCheckOffset))
+            {
+                float slopeAngle = Vector3.Angle(Vector3.up, _slopeHit.normal);
+                _onSlope = slopeAngle > 0.1f && slopeAngle <= maxSlopeAngle;
+            }
+            else
+            {
+                _onSlope = false;
+            }
         }
 
         private void HandleSprint()
@@ -138,44 +193,94 @@ namespace Entity.Player
 
         private void GroundCheck()
         {
-            _isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDist);
+            Vector3 rayStart = transform.position + Vector3.up * GroundRayOffset;
+            float rayLength = groundCheckDist + GroundRayOffset;
+    
+            _isGrounded = Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, rayLength, groundMask);
+
+            _isGrounded |= Physics.CheckSphere(
+                transform.position + Vector3.down * 0.1f,
+                _capsuleCollider.radius * GroundSphereROffset,
+                groundMask);
+            //
+            // if (_isGrounded)
+            // {
+            //     Debug.DrawRay(rayStart, Vector3.down * hit.distance, Color.green);
+            //     Debug.Log($"Hit: {hit.collider.gameObject.name} at distance {hit.distance}");
+            // }
+            // else
+            // {
+            //     Debug.DrawRay(rayStart, Vector3.down * rayLength, Color.red);
+            //     Debug.Log("Ground raycast MISSED");
+            // }
+
         }
 
         private void HandleMovement()
         {
             Vector2 movementInput = _inputReader.MovementInput;
+            Vector3 inputDir = new Vector3(movementInput.x, 0, movementInput.y).normalized;
 
-            // Vector3 camForward = cam.forward;
-            // camForward.y = 0;
-            // camForward.Normalize();
-            //
-            // Vector3 camRight = cam.right;
-            // camRight.y = 0;
-            // camRight.Normalize();
-
-            Vector3 desiredDir = transform.forward * movementInput.y + transform.right * movementInput.x;
-            Vector3 desiredVel = desiredDir * _currSpeed;
-
-            Vector3 velocity = _rb.linearVelocity;
-            velocity.y = 0;
-            Vector3 changeVel = desiredVel - velocity;
-
-            if (_inputReader.MovementInput.sqrMagnitude > 0.01f)
+            // get movement velocity
+            if (inputDir.magnitude >= 0.01f)
             {
-                Quaternion newRotation = Quaternion.LookRotation(desiredDir);
-                playerModelTransform.rotation =  Quaternion.Slerp(newRotation, playerModelTransform.rotation, rotationSpeed * Time.deltaTime);
+                Vector3 camForward = cameraTransform.forward;
+                Vector3 camRight = cameraTransform.right;
+
+                camForward.y = 0;
+                camRight.y = 0;
+
+                camForward.Normalize();
+                camRight.Normalize();
+
+                _moveDirection = camForward * inputDir.z + camRight * inputDir.x;
+
+                //TODO: aiming
+                bool isAiming = cameraController != null && cameraController.IsAiming();
+
+                if (isAiming)
+                {
+                    _currSpeed = aimWalkingSpeed;
+                }
+
+                HandleSprint();
             }
-            
-            _rb.AddForce(changeVel * acceleration, ForceMode.Acceleration);
-        }
+            else
+            {
+                _moveDirection = Vector3.zero;
+                _currSpeed = 0f;
+            }
 
-        private void HandleCam()
-        {
+            Vector3 targetVelocity = _moveDirection * _currSpeed;
 
+            // movement handling
+            if (_isGrounded)
+            {
+                if (_onSlope && _moveDirection.sqrMagnitude > 0.01f)
+                {
+                    targetVelocity = Vector3.ProjectOnPlane(targetVelocity, _slopeHit.normal);
+                    _rb.AddForce(Vector3.down * slopeForce, ForceMode.Force);
+                }
+
+                float accel = _moveDirection.magnitude > 0.1f ? acceleration : deceleration;
+
+                _currentVelocity = Vector3.Lerp(new Vector3(_rb.linearVelocity.x, 0, _rb.linearVelocity.z),
+                    targetVelocity, accel * Time.deltaTime);
+
+                _rb.linearVelocity = new Vector3(_currentVelocity.x, _rb.linearVelocity.y, _currentVelocity.z);
+                Vector3 velocity = _rb.linearVelocity;
+                velocity.x *= 1f - drag * Time.fixedDeltaTime;
+                velocity.z *= 1f - drag * Time.fixedDeltaTime;
+                _rb.linearVelocity = velocity;
+            }
+            else
+            {
+            }
         }
 
         private void HandleJump()
         {
+            return;
             if (_isJumping)
             {
                 return;

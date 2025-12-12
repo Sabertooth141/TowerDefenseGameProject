@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4adb4481c5311f34d95c5bc71df49897, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  projectileSpeed: 40
+  projectileSpeed: 80
   projectileDamage: 10
   projectileLifetime: 10
 --- !u!54 &-9120530450905016297
@@ -185,7 +185,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Radius: 0.8
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
