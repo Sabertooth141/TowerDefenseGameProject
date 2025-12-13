@@ -6,6 +6,7 @@ namespace Entity
 {
     public class Entity : MonoBehaviour
     {
+        [Header("Entity Settings")]
         public float maxHp = 100.0f;
         public float currHp;
 
@@ -24,21 +25,26 @@ namespace Entity
             {
                 return;
             }
-            
+
             currHp -= damage;
             if (currHp > 0)
             {
                 return;
             }
-            
+
             currHp = 0;
             Die();
         }
 
         protected virtual void Die()
         {
+            if (gameObject == null)
+            {
+                return;
+            }
+            
             Destroy(gameObject);
         }
-        
+
     }
 }

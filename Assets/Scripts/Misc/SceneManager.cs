@@ -2,26 +2,29 @@ using System;
 using EventSystem;
 using UnityEngine;
 
-public class SceneManager : MonoBehaviour
+namespace Misc
 {
-    public static SceneManager Instance { get; private set; }
-
-    private void Awake()
+    public class SceneManager : MonoBehaviour
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
+        public static SceneManager Instance { get; private set; }
 
-    private void Start()
-    {
-        EventHub.TriggerGameStart();
-    }
+        private void Awake()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
 
+        private void Start()
+        {
+            EventHub.TriggerGameStart();
+        }
+
+    }
 }

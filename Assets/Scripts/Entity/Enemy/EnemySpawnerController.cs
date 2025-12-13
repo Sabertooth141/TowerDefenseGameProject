@@ -6,105 +6,109 @@ using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
 
-public class EnemySpawnerController : MonoBehaviour
+namespace Entity.Enemy
 {
-    [Header("Enemy Prefabs")]
-    public GameObject[] enemyPrefabs;
-
-    [Header("Spawner Settings")]
-    public float spawnRadius;
-    public int maxEnemies;
-    public float checkInterval;
-
-    private List<Transform> _activeSpawnPos;
-    private bool _gameRunning;
-
-    private void Awake()
+    public class EnemySpawnerController : MonoBehaviour
     {
-        EventHub.OnGameStart += OnGameStart;
-        EventHub.OnGameEnd += OnGameEnd;
-    }
+        [Header("Enemy Prefabs")]
+        public GameObject[] enemyPrefabs;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        _activeSpawnPos = new List<Transform>();
-        
-        InitSpawnPoints();
-        StartCoroutine(SpawnLoop());
-    }
+        [Header("Spawner Settings")]
+        public float spawnRadius;
+        public int maxEnemies;
+        public float checkInterval;
 
-    private void OnGameEnd()
-    {
-        _gameRunning = false;
-    }
+        private List<Transform> _activeSpawnPos;
+        private bool _gameRunning;
 
-    private void OnGameStart()
-    {
-        _gameRunning = true;
-    }
-
-    private void InitSpawnPoints()
-    {
-        GameObject[] activeSpawnPoints = GameObject.FindGameObjectsWithTag("EnemySpawnPoint");
-        foreach (GameObject spawnPoint in activeSpawnPoints)
+        private void Awake()
         {
-            _activeSpawnPos.Add(spawnPoint.transform);
+            EventHub.OnGameStart += OnGameStart;
+            EventHub.OnGameEnd += OnGameEnd;
         }
-    }
 
-    //TODO: WIP
-    private IEnumerator SpawnLoop()
-    {
-        while (_gameRunning)
+        // Start is called once before the first execution of Update after the MonoBehaviour is created
+        void Start()
         {
-            int currentEnemies = EnemyManager.Instance.GetEnemyCount();
+            _activeSpawnPos = new List<Transform>();
 
-            if (currentEnemies < maxEnemies)
+            InitSpawnPoints();
+            StartCoroutine(SpawnLoop());
+        }
+
+        private void OnGameEnd()
+        {
+            _gameRunning = false;
+        }
+
+        private void OnGameStart()
+        {
+            _gameRunning = true;
+        }
+
+        private void InitSpawnPoints()
+        {
+            GameObject[] activeSpawnPoints = GameObject.FindGameObjectsWithTag("EnemySpawnPoint");
+            foreach (GameObject spawnPoint in activeSpawnPoints)
             {
-                SpawnEnemy();
+                _activeSpawnPos.Add(spawnPoint.transform);
+            }
+        }
+
+        //TODO: WIP
+        private IEnumerator SpawnLoop()
+        {
+            while (_gameRunning)
+            {
+                int currentEnemies = EnemyManager.Instance.GetEnemyCount();
+
+                if (currentEnemies < maxEnemies)
+                {
+                    SpawnEnemy();
+                }
+
+                yield return new WaitForSeconds(checkInterval);
+            }
+        }
+
+        private void SpawnEnemy()
+        {
+            if (_activeSpawnPos.Count == 0)
+            {
+                return;
             }
 
-            yield return new WaitForSeconds(checkInterval);
-        }
-    }
+            Transform spawnPoint = _activeSpawnPos[Random.Range(0, _activeSpawnPos.Count)];
 
-    private void SpawnEnemy()
-    {
-        if (_activeSpawnPos.Count == 0)
+            if (GetRandomPointOnNavMesh(spawnPoint.position, spawnRadius, out Vector3 spawnPosition))
+            {
+                Instantiate(enemyPrefabs[Random.Range(0, enemyPrefabs.Length)], spawnPosition, spawnPoint.rotation);
+            }
+            else
+            {
+                Instantiate(enemyPrefabs[Random.Range(0, enemyPrefabs.Length)], spawnPoint.position,
+                    spawnPoint.rotation);
+            }
+        }
+
+        public void SpawnEnemies(int count)
         {
             return;
         }
 
-        Transform spawnPoint = _activeSpawnPos[Random.Range(0, _activeSpawnPos.Count)];
-
-        if (GetRandomPointOnNavMesh(spawnPoint.position, spawnRadius, out Vector3 spawnPosition))
+        public bool GetRandomPointOnNavMesh(Vector3 center, float range, out Vector3 result)
         {
-            Instantiate(enemyPrefabs[Random.Range(0, enemyPrefabs.Length)], spawnPosition, spawnPoint.rotation);
+            Vector3 randomPoint = center + Random.insideUnitSphere * range;
+
+            NavMeshHit meshHit;
+            if (NavMesh.SamplePosition(randomPoint, out meshHit, 1.0f, NavMesh.AllAreas))
+            {
+                result = meshHit.position;
+                return true;
+            }
+
+            result = Vector3.zero;
+            return false;
         }
-        else
-        {
-            Instantiate(enemyPrefabs[Random.Range(0, enemyPrefabs.Length)], spawnPoint.position, spawnPoint.rotation);
-        }
-    }
-
-    public void SpawnEnemies(int count)
-    {
-        return;
-    }
-
-    public bool GetRandomPointOnNavMesh(Vector3 center, float range, out Vector3 result)
-    {
-        Vector3 randomPoint = center + Random.insideUnitSphere * range;
-
-        NavMeshHit meshHit;
-        if (NavMesh.SamplePosition(randomPoint, out meshHit, 1.0f, NavMesh.AllAreas))
-        {
-            result = meshHit.position;
-            return true;
-        }
-
-        result = Vector3.zero;
-        return false;
     }
 }

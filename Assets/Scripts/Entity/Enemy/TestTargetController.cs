@@ -1,7 +1,7 @@
 using EventSystem;
 using UnityEngine;
 
-namespace Entity
+namespace Entity.Enemy
 {
     public class TestTargetController : Entity
     {

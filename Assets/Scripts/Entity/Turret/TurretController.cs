@@ -59,6 +59,7 @@ namespace Entity.Turret
             stateMachine.ChangeState(new TurretIdleState(this));
 
             _range = detectionCollider.radius;
+            TurretManager.Instance.RegisterTurret(gameObject);
         }
 
         private void OnEnable()
@@ -84,8 +85,16 @@ namespace Entity.Turret
 
         private void HandleEnemyDied(Entity entity)
         {
-            _targetsToCheck.Remove(entity.gameObject);
-            targets.Remove(entity.gameObject);
+            if (_targetsToCheck.Contains(entity.gameObject))
+            {
+                _targetsToCheck.Remove(entity.gameObject);   
+            }
+
+            if (targets.Contains(entity.gameObject))
+            {
+                targets.Remove(entity.gameObject);
+            }
+            
             currTarget = null;
             // stateMachine.ChangeState(new TurretIdleState(this));
         }
@@ -107,14 +116,22 @@ namespace Entity.Turret
         {
             int maskToIgnore = ~losMask;
             Vector3 direction = (target.position - turretFiringPoint.position).normalized;
-
-            // Debug.DrawRay(turretFiringPoint.position, direction * 100f, Color.red);
+            
             if (Physics.Raycast(turretFiringPoint.position, direction, out RaycastHit hit, Mathf.Infinity,
                     maskToIgnore))
             {
-                return hit.transform == target;
-            }
+                if (hit.transform == target)
+                {
+                    Debug.DrawRay(turretFiringPoint.position, direction * 100f, Color.azure);
+                    return true;
+                }
 
+                Debug.DrawRay(turretFiringPoint.position, direction * 100f, Color.red);
+                return false;
+
+                // return hit.transform == target;
+            }
+            
             return false;
         }
 

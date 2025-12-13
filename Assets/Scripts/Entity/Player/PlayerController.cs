@@ -11,7 +11,6 @@ namespace Entity.Player
         [SerializeField] private Transform playerModelTransform;
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private CameraController cameraController;
-        [SerializeField] private CapsuleCollider capsuleCollider;
 
         [Header("Movement Controls")]
         public float walkingSpeed = 10.0f;
@@ -39,6 +38,7 @@ namespace Entity.Player
         private bool _isJumping;
         private bool _isGrounded;
         private bool _onSlope;
+        private bool _canMove;
 
         private float _currSpeed;
         private Vector3 _moveDirection;
@@ -53,7 +53,7 @@ namespace Entity.Player
 
         private PlayerInputReader _inputReader;
         private Rigidbody _rb;
-        // private CapsuleCollider _capsuleCollider;
+        private CapsuleCollider _capsuleCollider;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         protected override void Start()
@@ -79,13 +79,18 @@ namespace Entity.Player
             {
                 Debug.LogError("PlayerController: CameraTransform not found");
             }
+
+            if (_capsuleCollider == null)
+            {
+                Debug.LogError("PlayerController: CapsuleCollider not found");
+            }
         }
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
             _inputReader = GetComponent<PlayerInputReader>();
-            // _capsuleCollider = GetComponent<CapsuleCollider>();
+            _capsuleCollider = GetComponentInChildren<CapsuleCollider>();
 
             _rb.useGravity = false;
             _rb.isKinematic = false;
@@ -95,6 +100,8 @@ namespace Entity.Player
             Cursor.visible = false;
 
             _currSpeed = walkingSpeed;
+            
+            _canMove = true;
         }
 
         protected override void Update()
@@ -106,6 +113,11 @@ namespace Entity.Player
 
         private void FixedUpdate()
         {
+            if (!_canMove)
+            {
+                return;
+            }
+            
             GroundCheck();
             HandleGravity();
             HandleMovement();
@@ -146,7 +158,7 @@ namespace Entity.Player
         private void CheckSlope()
         {
             if (Physics.Raycast(transform.position, Vector3.down, out _slopeHit,
-                    capsuleCollider.height * 0.5f + SlopeCheckOffset))
+                    _capsuleCollider.height * 0.5f + SlopeCheckOffset))
             {
                 float slopeAngle = Vector3.Angle(Vector3.up, _slopeHit.normal);
                 _onSlope = slopeAngle > 0.1f && slopeAngle <= maxSlopeAngle;
@@ -201,25 +213,25 @@ namespace Entity.Player
 
             _isGrounded |= Physics.CheckSphere(
                 transform.position + Vector3.down * 0.7f,
-                capsuleCollider.radius,
+                _capsuleCollider.radius,
                 groundMask);
             
-            if (_isGrounded)
-            {
-                Debug.DrawRay(rayStart, Vector3.down * hit.distance, Color.green);
-                Debug.Log($"Hit: {hit.collider.gameObject.name} at distance {hit.distance}");
-            }
-            else
-            {
-                Debug.DrawRay(rayStart, Vector3.down * rayLength, Color.red);
-                Debug.Log("Ground raycast MISSED");
-            }
+            // if (_isGrounded)
+            // {
+            //     Debug.DrawRay(rayStart, Vector3.down * hit.distance, Color.green);
+            //     Debug.Log($"Hit: {hit.collider.gameObject.name} at distance {hit.distance}");
+            // }
+            // else
+            // {
+            //     Debug.DrawRay(rayStart, Vector3.down * rayLength, Color.red);
+            //     Debug.Log("Ground raycast MISSED");
+            // }
 
         }
         
         private void OnDrawGizmos()
         {
-            if (capsuleCollider == null) return;
+            if (_capsuleCollider == null) return;
     
             Vector3 spherePosition = transform.position + Vector3.down * 0.7f;
     
@@ -227,7 +239,7 @@ namespace Entity.Player
             Gizmos.color = _isGrounded ? Color.green : Color.red;
     
             // Draw the sphere
-            Gizmos.DrawWireSphere(spherePosition, capsuleCollider.radius);
+            Gizmos.DrawWireSphere(spherePosition, _capsuleCollider.radius);
         }
 
         private void HandleMovement()

@@ -1,23 +1,58 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class EnemyNavAgentController : MonoBehaviour
+namespace Entity.Enemy.EnemyPathfinding
 {
-    [SerializeField] private NavMeshAgent agent;
-    [SerializeField] private Transform target;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class EnemyNavAgentController : MonoBehaviour
     {
-        if (target == null)
-        {
-            target = GameObject.FindGameObjectWithTag("EnemyGoal").transform;    
-        }
-        
-    }
+        [SerializeField] private NavMeshAgent agent;
+        [SerializeField] private Transform target;
 
-    // Update is called once per frame
-    void Update()
-    {
-        agent.SetDestination(target.position);
+        private bool _isPathFinding;
+
+        // Start is called once before the first execution of Update after the MonoBehaviour is created
+        void Start()
+        {
+            if (target == null)
+            {
+                target = GameObject.FindGameObjectWithTag("EnemyGoal").transform;
+            }
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            if (target != null && _isPathFinding)
+            {
+                agent.SetDestination(target.position);
+            }
+        }
+
+        public void StartPathFinding()
+        {
+            if (!_isPathFinding)
+            {
+                _isPathFinding = true;
+            }
+        }
+
+        public void StopPathFinding()
+        {
+            if (_isPathFinding)
+            {
+                _isPathFinding = false;
+                agent.isStopped = true;
+            }
+        }
+
+        public void SetStoppingDistance(float distance)
+        {
+            if (distance < 0)
+            {
+                return;
+            }
+            agent.stoppingDistance = distance;
+        }
+
     }
 }
