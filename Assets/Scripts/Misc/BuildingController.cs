@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Entity.Player;
+using EventSystem;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -9,6 +10,7 @@ public class BuildingController : MonoBehaviour
     [Header("Reference")]
     [SerializeField] private PlayerInputReader inputReader;
     [SerializeField] private Camera playerCam;
+    [SerializeField] private Vector3 turretSize = new Vector3(2.0f, 2.0f, 2.0f);
 
     [Header("Placement Settings")]
     public GameObject[] turretPrefabs;
@@ -51,26 +53,24 @@ public class BuildingController : MonoBehaviour
         CreateGhostTurret();
     }
 
+    private void OnEnable()
+    {
+        EventHub.OnBuildingPressed += ToggleIsBuilding;
+        EventHub.OnBuildingConfirmed += ConfirmBuilding;
+    }
+
+    private void OnDisable()
+    {
+        EventHub.OnBuildingPressed -= ToggleIsBuilding;
+        EventHub.OnBuildingConfirmed -= ConfirmBuilding;
+    }
+
     // Update is called once per frame
     void Update()
     {
-        if (inputReader.BuildingPressed)
-        {
-            Debug.Log("building");
-            if (_isBuilding)
-            {
-                _ghostTurret.SetActive(false);
-            }
-            _isBuilding = !_isBuilding;
-        }
-
         if (_isBuilding)
         {
             UpdateGhostTurretPosition();
-            if (inputReader.AimPressed)
-            {
-                PlaceTurret();
-            }
         }
     }
 
@@ -113,12 +113,12 @@ public class BuildingController : MonoBehaviour
             _ghostTurret.SetActive(true);
 
             _ghostTurret.transform.position = buildingHit.point;
-            
-            Quaternion SurfaceRotation =  Quaternion.FromToRotation(Vector3.up, buildingHit.normal);
-            
+
+            Quaternion SurfaceRotation = Quaternion.FromToRotation(Vector3.up, buildingHit.normal);
+
             Vector3 cameraForward = playerCam.transform.forward;
             Vector3 surfaceForward = Vector3.ProjectOnPlane(cameraForward, buildingHit.normal).normalized;
-            
+
             Quaternion targetRotation = Quaternion.LookRotation(surfaceForward, buildingHit.normal);
 
             _ghostTurret.transform.rotation = targetRotation;
@@ -134,9 +134,28 @@ public class BuildingController : MonoBehaviour
         }
     }
 
+    private void ToggleIsBuilding()
+    {
+        if (_isBuilding)
+        {
+            _ghostTurret.SetActive(false);
+        }
+
+        _isBuilding = !_isBuilding;
+    }
+
+    private void ConfirmBuilding()
+    {
+        if (_isValidPlacement)
+        {
+            PlaceTurret();
+        }
+    }
+
     private void PlaceTurret()
     {
-        GameObject turret = Instantiate(turretPrefabs[_selectedTurret], _ghostTurret.transform.position, _ghostTurret.transform.rotation);
+        GameObject turret = Instantiate(turretPrefabs[_selectedTurret], _ghostTurret.transform.position,
+            _ghostTurret.transform.rotation);
         turret.name = "turret";
 
         _placedTurretPositions.Add(turret.transform.position);
@@ -175,6 +194,19 @@ public class BuildingController : MonoBehaviour
             {
                 return false;
             }
+        }
+
+        Collider[] buildingColliders = Physics.OverlapBox(buildingHit.point + Vector3.up * 0.5f, turretSize / 2,
+            Quaternion.LookRotation(_ghostTurret.transform.forward));
+        
+        foreach (Collider other in buildingColliders)
+        {
+            if (other.CompareTag("Ground") || other.CompareTag("Turret"))
+            {
+                continue;
+            }
+
+            return false;
         }
 
         return true;

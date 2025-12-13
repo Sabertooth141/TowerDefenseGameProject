@@ -11,6 +11,7 @@ namespace Entity.Player
         [SerializeField] private Transform playerModelTransform;
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private CameraController cameraController;
+        [SerializeField] private CapsuleCollider capsuleCollider;
 
         [Header("Movement Controls")]
         public float walkingSpeed = 10.0f;
@@ -52,7 +53,7 @@ namespace Entity.Player
 
         private PlayerInputReader _inputReader;
         private Rigidbody _rb;
-        private CapsuleCollider _capsuleCollider;
+        // private CapsuleCollider _capsuleCollider;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         protected override void Start()
@@ -84,7 +85,7 @@ namespace Entity.Player
         {
             _rb = GetComponent<Rigidbody>();
             _inputReader = GetComponent<PlayerInputReader>();
-            _capsuleCollider = GetComponent<CapsuleCollider>();
+            // _capsuleCollider = GetComponent<CapsuleCollider>();
 
             _rb.useGravity = false;
             _rb.isKinematic = false;
@@ -145,7 +146,7 @@ namespace Entity.Player
         private void CheckSlope()
         {
             if (Physics.Raycast(transform.position, Vector3.down, out _slopeHit,
-                    _capsuleCollider.height * 0.5f + SlopeCheckOffset))
+                    capsuleCollider.height * 0.5f + SlopeCheckOffset))
             {
                 float slopeAngle = Vector3.Angle(Vector3.up, _slopeHit.normal);
                 _onSlope = slopeAngle > 0.1f && slopeAngle <= maxSlopeAngle;
@@ -199,21 +200,34 @@ namespace Entity.Player
             _isGrounded = Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, rayLength, groundMask);
 
             _isGrounded |= Physics.CheckSphere(
-                transform.position + Vector3.down * 0.1f,
-                _capsuleCollider.radius * GroundSphereROffset,
+                transform.position + Vector3.down * 0.7f,
+                capsuleCollider.radius,
                 groundMask);
-            //
-            // if (_isGrounded)
-            // {
-            //     Debug.DrawRay(rayStart, Vector3.down * hit.distance, Color.green);
-            //     Debug.Log($"Hit: {hit.collider.gameObject.name} at distance {hit.distance}");
-            // }
-            // else
-            // {
-            //     Debug.DrawRay(rayStart, Vector3.down * rayLength, Color.red);
-            //     Debug.Log("Ground raycast MISSED");
-            // }
+            
+            if (_isGrounded)
+            {
+                Debug.DrawRay(rayStart, Vector3.down * hit.distance, Color.green);
+                Debug.Log($"Hit: {hit.collider.gameObject.name} at distance {hit.distance}");
+            }
+            else
+            {
+                Debug.DrawRay(rayStart, Vector3.down * rayLength, Color.red);
+                Debug.Log("Ground raycast MISSED");
+            }
 
+        }
+        
+        private void OnDrawGizmos()
+        {
+            if (capsuleCollider == null) return;
+    
+            Vector3 spherePosition = transform.position + Vector3.down * 0.7f;
+    
+            // Set color based on grounded state
+            Gizmos.color = _isGrounded ? Color.green : Color.red;
+    
+            // Draw the sphere
+            Gizmos.DrawWireSphere(spherePosition, capsuleCollider.radius);
         }
 
         private void HandleMovement()

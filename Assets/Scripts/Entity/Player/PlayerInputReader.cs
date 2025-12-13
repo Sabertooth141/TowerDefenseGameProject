@@ -1,4 +1,5 @@
 using System;
+using EventSystem;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Interactions;
@@ -36,20 +37,22 @@ namespace Entity.Player
             _controls.Player.Aim.performed += ctx => AimPressed = true;
             _controls.Player.Aim.canceled += ctx => AimPressed = false;
 
-            _controls.Player.Shoot.performed += ctx => ShootPressed = true;
+            _controls.Player.Shoot.performed += ctx =>
+            {
+                ShootPressed = true;
+                if (BuildingPressed)
+                {
+                    EventHub.TriggerBuildingConfirmed();
+                }
+            };
             _controls.Player.Shoot.canceled += ctx => ShootPressed = false;
 
             _controls.Player.Building.performed += ctx =>
             {
                 if (ctx.interaction is PressInteraction)
                 {
-                    BuildingPressed = true;
-                }
-            };
-            _controls.Player.Building.canceled += ctx => {
-                if (ctx.interaction is PressInteraction)
-                {
-                    BuildingPressed = false;
+                    BuildingPressed = !BuildingPressed;
+                    EventHub.TriggerBuildingPressed();
                 }
             };
         }

@@ -31,7 +31,8 @@ namespace Entity.Turret.TurretStateMachine
 
             if (_resetTimer >= _controller.timeToReset)
             {
-                _controller.turretHead.rotation = Quaternion.Slerp(_controller.turretHead.rotation, Quaternion.identity, Time.deltaTime * _controller.rotationSpeed / 10);
+                _controller.turretHead.rotation = Quaternion.Slerp(_controller.turretHead.rotation, Quaternion.LookRotation(
+                    _controller.transform.forward), Time.deltaTime * _controller.rotationSpeed / 10);
             }
         }
 

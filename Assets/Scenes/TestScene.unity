@@ -962,6 +962,7 @@ GameObject:
   - component: {fileID: 653618047}
   - component: {fileID: 653618046}
   - component: {fileID: 653618045}
+  - component: {fileID: 653618048}
   m_Layer: 0
   m_Name: TestPlayerModel
   m_TagString: Untagged
@@ -1042,6 +1043,29 @@ Transform:
   - {fileID: 345735486}
   m_Father: {fileID: 895011060}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!136 &653618048
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653618043}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &672603246
 GameObject:
   m_ObjectHideFlags: 0
@@ -1248,7 +1272,7 @@ GameObject:
   - component: {fileID: 849188691}
   m_Layer: 3
   m_Name: TestPlatform (2)
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1756,7 +1780,6 @@ GameObject:
   - component: {fileID: 895011059}
   - component: {fileID: 895011058}
   - component: {fileID: 895011057}
-  - component: {fileID: 895011056}
   - component: {fileID: 895011061}
   - component: {fileID: 895011062}
   m_Layer: 0
@@ -1766,29 +1789,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!136 &895011056
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 895011055}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &895011057
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1833,6 +1833,7 @@ MonoBehaviour:
   playerModelTransform: {fileID: 653618047}
   cameraTransform: {fileID: 950750235}
   cameraController: {fileID: 950750239}
+  capsuleCollider: {fileID: 653618048}
   walkingSpeed: 20
   aimWalkingSpeed: 20
   sprintSpeed: 40
@@ -1870,7 +1871,7 @@ Transform:
   m_GameObject: {fileID: 895011055}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 12.75, z: -11.79}
+  m_LocalPosition: {x: 0, y: 3.84, z: -11.79}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1911,6 +1912,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   inputReader: {fileID: 895011059}
   playerCam: {fileID: 950750238}
+  turretSize: {x: 0.5, y: 0.5, z: 0.5}
   turretPrefabs:
   - {fileID: 6127677091475512274, guid: 9d4040e242a61a044a0444388b956b55, type: 3}
   groundLayer:
@@ -2105,7 +2107,7 @@ GameObject:
   - component: {fileID: 1001667613}
   m_Layer: 3
   m_Name: TestRamp
-  m_TagString: Untagged
+  m_TagString: Ramp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2332,7 +2334,7 @@ GameObject:
   - component: {fileID: 1105716486}
   m_Layer: 3
   m_Name: TestFloor
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3159,7 +3161,7 @@ GameObject:
   - component: {fileID: 1734724040}
   m_Layer: 3
   m_Name: TestPlatform (1)
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
