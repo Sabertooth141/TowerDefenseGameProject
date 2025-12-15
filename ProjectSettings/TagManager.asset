@@ -12,6 +12,9 @@ TagManager:
   - EnemySpawnPoint
   - Ramp
   - Ground
+  - Terminal
+  - TerminalOutput
+  - TerminalInput
   layers:
   - Default
   - TransparentFX

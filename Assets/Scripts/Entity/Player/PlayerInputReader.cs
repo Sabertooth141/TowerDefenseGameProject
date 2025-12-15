@@ -15,6 +15,7 @@ namespace Entity.Player
         public bool AimPressed { get; private set; }
         public bool ShootPressed { get; private set; }
         public bool BuildingPressed { get; private set; }
+        public bool InteractPressed { get; private set; }
 
         private PlayerControls _controls;
 
@@ -55,6 +56,16 @@ namespace Entity.Player
                     EventHub.TriggerBuildingPressed();
                 }
             };
+
+            _controls.Player.Interact.performed += ctx =>
+            {
+                if (ctx.interaction is HoldInteraction)
+                {
+                    InteractPressed = true;
+                }
+            };
+            
+            _controls.Player.Interact.canceled += ctx => InteractPressed = false;
         }
 
         private void OnEnable()

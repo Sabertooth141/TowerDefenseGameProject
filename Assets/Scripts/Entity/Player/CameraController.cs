@@ -38,6 +38,7 @@ namespace Entity.Player
         private Vector3 _currOffset;
         private float _currDistance;
         private bool _isAiming = false;
+        private bool _isEnabled;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
@@ -62,16 +63,26 @@ namespace Entity.Player
             Vector3 angles = playerTransform.eulerAngles;
             _rotationX = angles.y;
             _rotationY = angles.x;
+
+            _isEnabled = true;
         }
 
         // Update is called once per frame
         void Update()
         {
+            if (!_isEnabled)
+            {
+                return;
+            }
             HandleInput();
         }
 
         void LateUpdate()
         {
+            if (!_isEnabled)
+            {
+                return;
+            }
             UpdatePivotPos();
             HandleRotation();
             HandleCamPosition();
@@ -150,6 +161,16 @@ namespace Entity.Player
         public Transform GetCameraTransform()
         {
             return transform;
+        }
+        
+        public void EnableCameraMovement()
+        {
+            _isEnabled = true;
+        }
+
+        public void DisableCameraMovement()
+        {
+            _isEnabled = false;
         }
     }
 }

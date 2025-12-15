@@ -1,4 +1,5 @@
 using System;
+using Terminal;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -39,6 +40,7 @@ namespace Entity.Player
         private bool _isGrounded;
         private bool _onSlope;
         private bool _canMove;
+        private bool _canLook;
 
         private float _currSpeed;
         private Vector3 _moveDirection;
@@ -102,6 +104,7 @@ namespace Entity.Player
             _currSpeed = walkingSpeed;
             
             _canMove = true;
+            _canLook = true;
         }
 
         protected override void Update()
@@ -131,6 +134,11 @@ namespace Entity.Player
 
         private void HandleRotation()
         {
+            if (!_canLook)
+            {
+                return;
+            }
+            
             bool isAiming = cameraController != null && cameraController.IsAiming();
 
             if (isAiming)
@@ -199,6 +207,10 @@ namespace Entity.Player
             else
             {
                 newVelocity.y += gravity * Time.deltaTime;
+                if (newVelocity.y >= maxFallSpeed)
+                {
+                    newVelocity.y =  maxFallSpeed;
+                }
             }
 
             _rb.linearVelocity = newVelocity;
@@ -215,6 +227,11 @@ namespace Entity.Player
                 transform.position + Vector3.down * 0.7f,
                 _capsuleCollider.radius,
                 groundMask);
+
+            if (_isGrounded)
+            {
+                _isJumping = false;
+            }
             
             // if (_isGrounded)
             // {
@@ -306,15 +323,44 @@ namespace Entity.Player
 
         private void HandleJump()
         {
-            // if (_isJumping)
-            // {
-            //     return;
-            // }
-            //
-            // Vector3 newVelocity = _rb.linearVelocity;
-            // newVelocity.y = jumpSpeed;
-            // _rb.linearVelocity = newVelocity;
-            // _isJumping = true;
+            if (_isJumping)
+            {
+                return;
+            }
+            
+            Vector3 newVelocity = _rb.linearVelocity;
+            newVelocity.y = jumpSpeed;
+            _rb.linearVelocity = newVelocity;
+            _isJumping = true;
+        }
+ 
+        private void OnTriggerStay (Collider other)
+        {
+            if (other.CompareTag("Terminal"))
+            {
+                if (_inputReader.InteractPressed)
+                {
+                    if (other.GetComponent<TerminalController>() != null)
+                    {
+                        other.GetComponent<TerminalController>().StartTerminal();
+                    }
+                    DisableMovement();
+                }
+            }
+        }
+
+        public void DisableMovement()
+        {
+            _canMove = false;
+            _canLook = false;
+            cameraController.DisableCameraMovement();
+        }
+
+        public void EnableMovement()
+        {
+            _canMove = true;
+            _canLook = true;
+            cameraController.EnableCameraMovement();
         }
     }
 }
