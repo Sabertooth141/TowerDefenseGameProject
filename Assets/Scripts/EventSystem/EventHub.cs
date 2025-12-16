@@ -12,10 +12,13 @@ namespace EventSystem
         // game events
         public static event Action OnGameStart;
         public static event Action OnGameEnd;
+        // enemy goal hurt
+        public static event Action<float, float> OnGoalHurt;
         
         // building system events
         public static event Action OnBuildingPressed;
         public static event Action OnBuildingConfirmed;
+        public static event Action<int> OnTurretUpdate;
         
         // event trigger
         public static void TriggerEnemyDied(Entity.Entity enemy)
@@ -41,6 +44,16 @@ namespace EventSystem
         public static void TriggerBuildingConfirmed()
         {
             OnBuildingConfirmed?.Invoke();
+        }
+        
+        public static void TriggerOnGoalHurt(float curHp, float maxHp)
+        {
+            OnGoalHurt?.Invoke(curHp, maxHp);
+        }
+
+        public static void TriggerOnTurretUpdate(int availableTurret)
+        {
+            OnTurretUpdate?.Invoke(availableTurret);
         }
     }
 }

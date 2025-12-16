@@ -16,7 +16,7 @@ namespace Entity.Turret
         public float timeToReset = 10.0f;
         public float firingAngle = 3.0f;
         public float loseLockAngle = 5.0f;
-        public float lockOnTime = 0.5f; 
+        public float lockOnTime = 0.5f;
         public float damage = 50.0f;
 
         [Header("References")]
@@ -87,14 +87,14 @@ namespace Entity.Turret
         {
             if (_targetsToCheck.Contains(entity.gameObject))
             {
-                _targetsToCheck.Remove(entity.gameObject);   
+                _targetsToCheck.Remove(entity.gameObject);
             }
 
             if (targets.Contains(entity.gameObject))
             {
                 targets.Remove(entity.gameObject);
             }
-            
+
             currTarget = null;
             // stateMachine.ChangeState(new TurretIdleState(this));
         }
@@ -102,7 +102,7 @@ namespace Entity.Turret
         public void Fire()
         {
             Ray bulletRay = new Ray(turretFiringPoint.position, turretFiringPoint.forward);
-            
+
             if (Physics.Raycast(bulletRay, out RaycastHit hit, _range))
             {
                 if (hit.transform.CompareTag("Enemy"))
@@ -116,7 +116,7 @@ namespace Entity.Turret
         {
             int maskToIgnore = ~losMask;
             Vector3 direction = (target.position - turretFiringPoint.position).normalized;
-            
+
             if (Physics.Raycast(turretFiringPoint.position, direction, out RaycastHit hit, Mathf.Infinity,
                     maskToIgnore))
             {
@@ -131,7 +131,7 @@ namespace Entity.Turret
 
                 // return hit.transform == target;
             }
-            
+
             return false;
         }
 
@@ -141,14 +141,14 @@ namespace Entity.Turret
             {
                 return;
             }
-            
+
             _targetsToCheck.RemoveAll(t => t == null);
             targets.RemoveAll(t => t == null);
             foreach (var target in _targetsToCheck)
             {
                 if (LOSDetection(target.transform))
                 {
-                    if (!targets.Contains(target))    
+                    if (!targets.Contains(target))
                         targets.Add(target);
                 }
                 else
@@ -175,6 +175,15 @@ namespace Entity.Turret
 
             _targetsToCheck.Remove(other.gameObject);
             targets.Remove(other.gameObject);
+        }
+
+        public void DisableTurret()
+        {
+            TurretManager.Instance.UnregisterTurret(gameObject);
+            if (gameObject != null)
+            {
+                Destroy(gameObject);
+            }
         }
     }
 }

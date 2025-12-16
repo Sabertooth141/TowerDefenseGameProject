@@ -8,6 +8,14 @@ using UnityEngine.Rendering;
 
 namespace Terminal
 {
+    [Serializable]
+    public class TerminalCommand
+    {
+        public string name;
+        public string description;
+        public Action<string[]> callback;
+    }
+
     public class TerminalController : MonoBehaviour
     {
         [Header("Reference")]
@@ -18,6 +26,7 @@ namespace Terminal
         private PlayerController _playerController;
         private bool _terminalOpen;
         private List<String> _outputLines = new List<String>();
+        private Dictionary<String, TerminalCommand> _commands = new Dictionary<string, TerminalCommand>();
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
@@ -31,22 +40,27 @@ namespace Terminal
             {
                 _playerController = FindAnyObjectByType<PlayerController>();
             }
-            
+
             cmdInput = terminalPanel.GetComponentInChildren<TMP_InputField>();
             if (cmdInput == null)
             {
                 Debug.LogError("TerminalController: input field is null");
             }
-            
+
             outputText = terminalPanel.GetComponentInChildren<TextMeshProUGUI>();
             if (outputText == null)
             {
                 Debug.LogError("TerminalController: output text field is null");
             }
-            
+
             terminalPanel.SetActive(false);
-            
+            InitCommands();
+
             cmdInput.onSubmit.AddListener(OnCommandSubmit);
+            
+            AddOutput("TERMINAL V2.4.1 INITIALIZED");
+            AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
+            AddOutput("---------------------------------------------");
         }
 
         // Update is called once per frame
@@ -67,10 +81,10 @@ namespace Terminal
             {
                 return;
             }
-            
+
             _terminalOpen = true;
             terminalPanel.SetActive(true);
-            
+
             cmdInput.text = "";
             cmdInput.ActivateInputField();
         }
@@ -81,7 +95,7 @@ namespace Terminal
             {
                 return;
             }
-            
+
             _terminalOpen = false;
             terminalPanel.SetActive(false);
             _playerController.EnableMovement();
@@ -90,9 +104,9 @@ namespace Terminal
         private void AddOutput(string output)
         {
             _outputLines.Add(output);
-            
-            outputText.text = string.Join("\n",  _outputLines);
-            
+
+            outputText.text = string.Join("\n", _outputLines);
+
             Canvas.ForceUpdateCanvases();
         }
 
@@ -103,15 +117,86 @@ namespace Terminal
                 cmdInput.ActivateInputField();
                 return;
             }
-            AddOutput($"> {command}");
+            
+            ProcessCmd(command);
 
             cmdInput.text = "";
             cmdInput.ActivateInputField();
         }
 
+        private void ProcessCmd(string cmd)
+        {
+            if (!_commands.ContainsKey(cmd.ToUpper()))
+            {
+                AddOutput($"ERROR: Unknown command '{cmd}', type 'HELP' for available commands");
+                cmdInput.text = "";
+                cmdInput.ActivateInputField();
+                return;
+            }
+
+            try
+            {
+                _commands[cmd.ToUpper()].callback?.Invoke(cmd.Split(' '));
+            }
+            catch (Exception e)
+            {
+                AddOutput($"ERROR: Command execution failed - {e.Message}");
+            }
+            
+            cmdInput.text = "";
+            cmdInput.ActivateInputField();
+        }
+
+        private void RegisterCmd(string cmdName, string description, Action<string[]> callback)
+        {
+            if (String.IsNullOrWhiteSpace(cmdName) || String.IsNullOrWhiteSpace(description))
+            {
+                return;
+            }
+
+            if (callback == null)
+            {
+                return;
+            }
+            
+            _commands[cmdName.ToUpper()] = new TerminalCommand()
+            {
+                name = cmdName,
+                description = description,
+                callback = callback
+            };
+        }
+
+        private void InitCommands()
+        {
+            // HELP
+            RegisterCmd("HELP", "Lists all available commands", (args) =>
+            {
+                AddOutput("==== AVAILABLE COMMANDS ====");
+                foreach (var cmd in _commands)
+                {
+                    AddOutput($"{cmd.Key}: {cmd.Value.description}");
+                }
+            });
+            
+            // CLEAR
+            RegisterCmd("CLR", "Clears terminal output", (args) =>
+            {
+                ClearOutput();
+                AddOutput("TERMINAL V2.4.1 INITIALIZED");
+                AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
+                AddOutput("---------------------------------------------");
+            });
+        }
+
+        private void ClearOutput()
+        {
+            _outputLines.Clear();
+            outputText.text = "";
+        }
+
         private void OnInputChanged(string command)
         {
-            
         }
     }
 }

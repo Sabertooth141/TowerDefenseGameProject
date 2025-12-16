@@ -31,6 +31,7 @@ namespace Misc
         private Renderer[] _ghostRenderers;
         private int _selectedTurret = 0;
         private bool _isBuilding = false;
+        private int _maxTurretCount;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
@@ -49,7 +50,9 @@ namespace Misc
             {
                 Debug.LogError("BuildingController no PlayerCam selected");
             }
-
+            
+            _maxTurretCount = TurretManager.Instance.maxTurretCount;
+            
             CreateGhostTurret();
         }
 
@@ -179,6 +182,11 @@ namespace Misc
         {
             float slopeAngle = Vector3.Angle(buildingHit.normal, Vector3.up);
             if (slopeAngle > maxSlopeAngle)
+            {
+                return false;
+            }
+
+            if (TurretManager.Instance.GetTurretCount() >= _maxTurretCount)
             {
                 return false;
             }

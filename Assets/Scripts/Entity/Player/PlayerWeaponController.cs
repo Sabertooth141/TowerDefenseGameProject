@@ -45,7 +45,6 @@ namespace Entity.Player
             if (Physics.Raycast(shootRay, out RaycastHit hit, range))
             {
                 Instantiate(hitIndicate, hit.point, hit.transform.rotation);
-                Debug.Log(hit.transform.name);
                 if (hit.transform.CompareTag("Enemy"))
                 {
                     hit.transform.gameObject.GetComponent<Entity>().TakeDamage(damage);

@@ -1,5 +1,9 @@
 using System;
+using Entity.Turret;
+using EventSystem;
 using Terminal;
+using TMPro;
+using UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -12,6 +16,7 @@ namespace Entity.Player
         [SerializeField] private Transform playerModelTransform;
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private CameraController cameraController;
+        [SerializeField] private UIController uiController;
 
         [Header("Movement Controls")]
         public float walkingSpeed = 10.0f;
@@ -53,6 +58,7 @@ namespace Entity.Player
         //check slope param
         private const float SlopeCheckOffset = 0.5f;
 
+        // reference
         private PlayerInputReader _inputReader;
         private Rigidbody _rb;
         private CapsuleCollider _capsuleCollider;
@@ -62,6 +68,55 @@ namespace Entity.Player
         {
             base.Start();
 
+            NullCheck();
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+
+            _currSpeed = walkingSpeed;
+
+            _canMove = true;
+            _canLook = true;
+        }
+
+        private void Awake()
+        {
+            _rb = GetComponent<Rigidbody>();
+            _inputReader = GetComponent<PlayerInputReader>();
+            _capsuleCollider = GetComponentInChildren<CapsuleCollider>();
+
+            _rb.useGravity = false;
+            _rb.isKinematic = false;
+            _rb.freezeRotation = true;
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            HandleRotation();
+        }
+
+        private void FixedUpdate()
+        {
+            if (!_canMove)
+            {
+                return;
+            }
+
+            GroundCheck();
+            HandleGravity();
+            HandleMovement();
+            CheckSlope();
+
+            if (_inputReader.JumpPressed)
+            {
+                HandleJump();
+            }
+        }
+
+        private void NullCheck()
+        {
             if (playerModelTransform == null)
             {
                 Debug.LogError("PlayerController: PlayerModelTransform is null");
@@ -88,49 +143,6 @@ namespace Entity.Player
             }
         }
 
-        private void Awake()
-        {
-            _rb = GetComponent<Rigidbody>();
-            _inputReader = GetComponent<PlayerInputReader>();
-            _capsuleCollider = GetComponentInChildren<CapsuleCollider>();
-
-            _rb.useGravity = false;
-            _rb.isKinematic = false;
-            _rb.freezeRotation = true;
-
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-
-            _currSpeed = walkingSpeed;
-            
-            _canMove = true;
-            _canLook = true;
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            HandleRotation();
-        }
-
-        private void FixedUpdate()
-        {
-            if (!_canMove)
-            {
-                return;
-            }
-            
-            GroundCheck();
-            HandleGravity();
-            HandleMovement();
-            CheckSlope();
-
-            if (_inputReader.JumpPressed)
-            {
-                HandleJump();
-            }
-        }
 
         private void HandleRotation()
         {
@@ -138,7 +150,7 @@ namespace Entity.Player
             {
                 return;
             }
-            
+
             bool isAiming = cameraController != null && cameraController.IsAiming();
 
             if (isAiming)
@@ -209,7 +221,7 @@ namespace Entity.Player
                 newVelocity.y += gravity * Time.deltaTime;
                 if (newVelocity.y >= maxFallSpeed)
                 {
-                    newVelocity.y =  maxFallSpeed;
+                    newVelocity.y = maxFallSpeed;
                 }
             }
 
@@ -220,7 +232,7 @@ namespace Entity.Player
         {
             Vector3 rayStart = transform.position + Vector3.up * GroundRayOffset;
             float rayLength = groundCheckDist + GroundRayOffset;
-    
+
             _isGrounded = Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, rayLength, groundMask);
 
             _isGrounded |= Physics.CheckSphere(
@@ -232,7 +244,7 @@ namespace Entity.Player
             {
                 _isJumping = false;
             }
-            
+
             // if (_isGrounded)
             // {
             //     Debug.DrawRay(rayStart, Vector3.down * hit.distance, Color.green);
@@ -243,18 +255,17 @@ namespace Entity.Player
             //     Debug.DrawRay(rayStart, Vector3.down * rayLength, Color.red);
             //     Debug.Log("Ground raycast MISSED");
             // }
-
         }
-        
+
         private void OnDrawGizmos()
         {
             if (_capsuleCollider == null) return;
-    
+
             Vector3 spherePosition = transform.position + Vector3.down * 0.7f;
-    
+
             // Set color based on grounded state
             Gizmos.color = _isGrounded ? Color.green : Color.red;
-    
+
             // Draw the sphere
             Gizmos.DrawWireSphere(spherePosition, _capsuleCollider.radius);
         }
@@ -278,7 +289,6 @@ namespace Entity.Player
 
                 _moveDirection = camForward * inputDir.z + camRight * inputDir.x;
 
-                //TODO: aiming
                 bool isAiming = cameraController != null && cameraController.IsAiming();
 
                 if (isAiming)
@@ -327,26 +337,44 @@ namespace Entity.Player
             {
                 return;
             }
-            
+
             Vector3 newVelocity = _rb.linearVelocity;
             newVelocity.y = jumpSpeed;
             _rb.linearVelocity = newVelocity;
             _isJumping = true;
         }
- 
-        private void OnTriggerStay (Collider other)
+
+        private void OnTriggerStay(Collider other)
         {
             if (other.CompareTag("Terminal"))
             {
+                uiController.EnableInteraction("[F] Open Terminal");
                 if (_inputReader.InteractPressed)
                 {
+                    uiController.DisableInteraction();
                     if (other.GetComponent<TerminalController>() != null)
                     {
                         other.GetComponent<TerminalController>().StartTerminal();
                     }
+
                     DisableMovement();
                 }
             }
+
+            if (other.CompareTag("TurretInteraction"))
+            {
+                uiController.EnableInteraction("[F] Destroy Turret");
+                if (_inputReader.InteractPressed)
+                {
+                    uiController.DisableInteraction();
+                    other.GetComponentInParent<TurretController>().DisableTurret();
+                }
+            }
+        }
+
+        private void OnTriggerExit(Collider other)
+        {
+            uiController.DisableInteraction();
         }
 
         public void DisableMovement()

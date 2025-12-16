@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using EventSystem;
 using UnityEngine;
 
 namespace Entity.Turret
@@ -8,12 +9,14 @@ namespace Entity.Turret
     {
         public static TurretManager Instance { get; private set; }
         
+        public int maxTurretCount = 10;
+
         private List<GameObject> _turretObjects;
 
         private void Awake()
         {
             _turretObjects = new List<GameObject>();
-            
+
             if (Instance == null)
             {
                 Instance = this;
@@ -28,32 +31,32 @@ namespace Entity.Turret
         public void RegisterTurret(GameObject turret)
         {
             if (!_turretObjects.Contains(turret))
+            {
                 _turretObjects.Add(turret);
+                EventHub.TriggerOnTurretUpdate(maxTurretCount - _turretObjects.Count);
+            }
         }
-        
+
         public void UnregisterTurret(GameObject turret)
         {
             _turretObjects.Remove(turret);
+            EventHub.TriggerOnTurretUpdate(maxTurretCount - _turretObjects.Count);
         }
 
         public List<GameObject> GetTurretObjects()
         {
-            return  _turretObjects;
+            return _turretObjects;
         }
 
         public void ClearTurrets()
         {
             _turretObjects.Clear();
+            EventHub.TriggerOnTurretUpdate(maxTurretCount - _turretObjects.Count);
         }
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
+        public int GetTurretCount()
         {
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
+            return _turretObjects.Count;
         }
     }
 }

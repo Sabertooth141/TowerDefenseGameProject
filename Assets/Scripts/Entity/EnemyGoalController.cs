@@ -18,7 +18,7 @@ namespace Entity
         public override void TakeDamage(float damage)
         {
             base.TakeDamage(damage);
-            Debug.Log("Core taking damage: " + damage);
+            EventHub.TriggerOnGoalHurt(currHp, maxHp);
         }
 
         protected override void Die()

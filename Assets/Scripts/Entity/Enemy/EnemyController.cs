@@ -26,7 +26,7 @@ namespace Entity.Enemy
         protected override void Start()
         {
             base.Start();
-
+            
             if (_navMeshAgent == null)
             {
                 Debug.LogError("EnemyController: NavMeshAgent is null");

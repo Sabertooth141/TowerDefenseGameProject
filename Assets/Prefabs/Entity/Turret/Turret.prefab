@@ -1,5 +1,58 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &306185330513898560
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3922198063160086306}
+  - component: {fileID: 5856771998886722006}
+  m_Layer: 0
+  m_Name: TurretInteraction
+  m_TagString: TurretInteraction
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3922198063160086306
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 306185330513898560}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 4, y: 4, z: 4}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2707150209010077172}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &5856771998886722006
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 306185330513898560}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4241369564773648339
 GameObject:
   m_ObjectHideFlags: 0
@@ -221,7 +274,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2707150209010077172}
   - component: {fileID: 4302827916792104798}
-  - component: {fileID: 5686039485294390989}
+  - component: {fileID: 4564961862745017717}
   m_Layer: 2
   m_Name: Turret
   m_TagString: Turret
@@ -244,6 +297,7 @@ Transform:
   m_Children:
   - {fileID: 7720666760641817964}
   - {fileID: 8107001000778607370}
+  - {fileID: 3922198063160086306}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4302827916792104798
@@ -269,10 +323,10 @@ MonoBehaviour:
   damage: 50
   turretHead: {fileID: 7720666760641817964}
   turretFiringPoint: {fileID: 1343451425115519233}
-  detectionCollider: {fileID: 5686039485294390989}
+  detectionCollider: {fileID: 4564961862745017717}
   currTarget: {fileID: 0}
   targets: []
---- !u!135 &5686039485294390989
+--- !u!135 &4564961862745017717
 SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
