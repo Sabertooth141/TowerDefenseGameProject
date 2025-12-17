@@ -20,6 +20,9 @@ namespace EventSystem
         public static event Action OnBuildingConfirmed;
         public static event Action<int> OnTurretUpdate;
         
+        // internal logic events
+        public static event Action OnFilesGenerated;
+        
         // event trigger
         public static void TriggerEnemyDied(Entity.Entity enemy)
         {
@@ -54,6 +57,11 @@ namespace EventSystem
         public static void TriggerOnTurretUpdate(int availableTurret)
         {
             OnTurretUpdate?.Invoke(availableTurret);
+        }
+
+        public static void TriggerOnFilesGenerated()
+        {
+            OnFilesGenerated?.Invoke();
         }
     }
 }

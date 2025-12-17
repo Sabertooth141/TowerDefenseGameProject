@@ -18,6 +18,9 @@ TagManager:
   - GoalHpIndic
   - GoalHpDisplay
   - TurretInteraction
+  - TerminalManager
+  - TaskManager
+  - TerminalPanel
   layers:
   - Default
   - TransparentFX

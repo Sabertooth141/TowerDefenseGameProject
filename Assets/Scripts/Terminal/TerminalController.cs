@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Entity.Player;
+using EventSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 namespace Terminal
 {
@@ -22,42 +24,52 @@ namespace Terminal
         [SerializeField] private GameObject terminalPanel;
         [SerializeField] private TMP_InputField cmdInput;
         [SerializeField] private TextMeshProUGUI outputText;
+        [SerializeField] private ScrollRect scrollRect;
+        [SerializeField] private RectTransform contentRect;
 
         private PlayerController _playerController;
         private bool _terminalOpen;
         private List<String> _outputLines = new List<String>();
         private Dictionary<String, TerminalCommand> _commands = new Dictionary<string, TerminalCommand>();
-
+        private List<string> _storedDir = new List<string>();
+        
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            if (terminalPanel == null)
-            {
-                Debug.LogError("TerminalController: terminalPanel is null");
-            }
-
             if (_playerController == null)
             {
                 _playerController = FindAnyObjectByType<PlayerController>();
             }
 
-            cmdInput = terminalPanel.GetComponentInChildren<TMP_InputField>();
+            if (terminalPanel == null)
+            {
+                Debug.LogError("TerminalController: terminal panel is null");
+            }
+            
             if (cmdInput == null)
             {
                 Debug.LogError("TerminalController: input field is null");
             }
-
-            outputText = terminalPanel.GetComponentInChildren<TextMeshProUGUI>();
+            
             if (outputText == null)
             {
                 Debug.LogError("TerminalController: output text field is null");
+            }
+            
+            if (scrollRect == null)
+            {
+                Debug.LogError("TerminalController: scrollRect is null");
+            }
+            else
+            {
+                contentRect = scrollRect.content;
             }
 
             terminalPanel.SetActive(false);
             InitCommands();
 
             cmdInput.onSubmit.AddListener(OnCommandSubmit);
-            
+
             AddOutput("TERMINAL V2.4.1 INITIALIZED");
             AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
             AddOutput("---------------------------------------------");
@@ -104,10 +116,14 @@ namespace Terminal
         private void AddOutput(string output)
         {
             _outputLines.Add(output);
-
             outputText.text = string.Join("\n", _outputLines);
 
             Canvas.ForceUpdateCanvases();
+
+            if (scrollRect != null)
+            {
+                scrollRect.verticalNormalizedPosition = 0f;
+            }
         }
 
         private void OnCommandSubmit(string command)
@@ -117,7 +133,7 @@ namespace Terminal
                 cmdInput.ActivateInputField();
                 return;
             }
-            
+
             ProcessCmd(command);
 
             cmdInput.text = "";
@@ -142,7 +158,7 @@ namespace Terminal
             {
                 AddOutput($"ERROR: Command execution failed - {e.Message}");
             }
-            
+
             cmdInput.text = "";
             cmdInput.ActivateInputField();
         }
@@ -158,7 +174,7 @@ namespace Terminal
             {
                 return;
             }
-            
+
             _commands[cmdName.ToUpper()] = new TerminalCommand()
             {
                 name = cmdName,
@@ -178,7 +194,7 @@ namespace Terminal
                     AddOutput($"{cmd.Key}: {cmd.Value.description}");
                 }
             });
-            
+
             // CLEAR
             RegisterCmd("CLR", "Clears terminal output", (args) =>
             {
@@ -187,12 +203,30 @@ namespace Terminal
                 AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
                 AddOutput("---------------------------------------------");
             });
+            
+            RegisterCmd("DIR", "Show all directories", (args) =>
+            {
+                AddOutput("==== DIRECTORIES ====");
+                foreach (var dir in _storedDir)
+                {
+                    AddOutput($"{dir}");
+                }
+                AddOutput("---------------------------------------------");
+            });
+
+            // FOR TEST
+            RegisterCmd("UPLOAD", "TEST CMD", (args) => { });
         }
 
         private void ClearOutput()
         {
             _outputLines.Clear();
             outputText.text = "";
+        }
+
+        public void AddDir(string dir)
+        {
+            _storedDir.Add(dir);
         }
 
         private void OnInputChanged(string command)
