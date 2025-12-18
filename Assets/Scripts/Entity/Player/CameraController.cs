@@ -43,17 +43,6 @@ namespace Entity.Player
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            _cam = GetComponent<Camera>();
-            if (_cam == null)
-            {
-                Debug.LogError("Camera not found");
-            }
-
-            if (inputReader == null)
-            {
-                Debug.LogError("Input reader not found");
-            }
-
             _currOffset = normalOffset;
             _currDistance = normalOffset.magnitude;
 
@@ -65,6 +54,20 @@ namespace Entity.Player
             _rotationY = angles.x;
 
             _isEnabled = true;
+        }
+
+        private void Awake()
+        {
+            _cam = GetComponent<Camera>();
+            if (_cam == null)
+            {
+                Debug.LogError("Camera not found");
+            }
+
+            if (inputReader == null)
+            {
+                Debug.LogError("Input reader not found");
+            }
         }
 
         // Update is called once per frame

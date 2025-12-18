@@ -17,14 +17,15 @@ namespace UI
 
         private void Start()
         {
-            CheckNull();
+            EventHub.OnGoalHurt += HandleGoalHurt;
+            EventHub.OnTurretUpdate += HandleTurretUpdate;
+            
             InitUIComponents();
         }
 
         private void Awake()
         {
-            EventHub.OnGoalHurt += HandleGoalHurt;
-            EventHub.OnTurretUpdate += HandleTurretUpdate;
+            CheckNull();
         }
 
         private void CheckNull()
@@ -84,6 +85,12 @@ namespace UI
         public void HandleTurretUpdate(int availableTurret)
         {
             availableTurretsText.text = $"{availableTurret}";
+        }
+
+        private void OnDestroy()
+        {
+            EventHub.OnGoalHurt -= HandleGoalHurt;
+            EventHub.OnTurretUpdate -= HandleTurretUpdate;
         }
     }
 }

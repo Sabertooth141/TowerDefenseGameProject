@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Terminal
@@ -21,7 +22,7 @@ namespace Terminal
     public class TerminalController : MonoBehaviour
     {
         [Header("Reference")]
-        [SerializeField] private GameObject terminalPanel;
+        [SerializeField] private GameObject terminalScreen;
         [SerializeField] private TMP_InputField cmdInput;
         [SerializeField] private TextMeshProUGUI outputText;
         [SerializeField] private ScrollRect scrollRect;
@@ -29,33 +30,45 @@ namespace Terminal
 
         private PlayerController _playerController;
         private bool _terminalOpen;
-        private List<String> _outputLines = new List<String>();
-        private Dictionary<String, TerminalCommand> _commands = new Dictionary<string, TerminalCommand>();
-        private List<string> _storedDir = new List<string>();
-        
+        private List<String> _outputLines = new();
+        private Dictionary<String, TerminalCommand> _commands = new();
+        private List<string> _storedDir = new();
+
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
+        {
+            terminalScreen.SetActive(false);
+            InitCommands();
+
+            cmdInput.onSubmit.AddListener(OnCommandSubmit);
+
+            AddOutput("TERMINAL V2.4.1 INITIALIZED");
+            AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
+            AddOutput("---------------------------------------------");
+        }
+
+        private void Awake()
         {
             if (_playerController == null)
             {
                 _playerController = FindAnyObjectByType<PlayerController>();
             }
 
-            if (terminalPanel == null)
+            if (terminalScreen == null)
             {
                 Debug.LogError("TerminalController: terminal panel is null");
             }
-            
+
             if (cmdInput == null)
             {
                 Debug.LogError("TerminalController: input field is null");
             }
-            
+
             if (outputText == null)
             {
                 Debug.LogError("TerminalController: output text field is null");
             }
-            
+
             if (scrollRect == null)
             {
                 Debug.LogError("TerminalController: scrollRect is null");
@@ -64,15 +77,6 @@ namespace Terminal
             {
                 contentRect = scrollRect.content;
             }
-
-            terminalPanel.SetActive(false);
-            InitCommands();
-
-            cmdInput.onSubmit.AddListener(OnCommandSubmit);
-
-            AddOutput("TERMINAL V2.4.1 INITIALIZED");
-            AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
-            AddOutput("---------------------------------------------");
         }
 
         // Update is called once per frame
@@ -95,10 +99,12 @@ namespace Terminal
             }
 
             _terminalOpen = true;
-            terminalPanel.SetActive(true);
+            terminalScreen.SetActive(true);
 
             cmdInput.text = "";
             cmdInput.ActivateInputField();
+            
+            EventHub.TriggerOnTerminalStatusChanged(true, terminalScreen.transform);
         }
 
         public void CloseTerminal()
@@ -109,8 +115,10 @@ namespace Terminal
             }
 
             _terminalOpen = false;
-            terminalPanel.SetActive(false);
-            _playerController.EnableMovement();
+            terminalScreen.SetActive(false);
+            // _playerController.EnableMovement();
+            
+            EventHub.TriggerOnTerminalStatusChanged(false, terminalScreen.transform);
         }
 
         private void AddOutput(string output)
@@ -203,7 +211,7 @@ namespace Terminal
                 AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
                 AddOutput("---------------------------------------------");
             });
-            
+
             RegisterCmd("DIR", "Show all directories", (args) =>
             {
                 AddOutput("==== DIRECTORIES ====");
@@ -211,6 +219,7 @@ namespace Terminal
                 {
                     AddOutput($"{dir}");
                 }
+
                 AddOutput("---------------------------------------------");
             });
 

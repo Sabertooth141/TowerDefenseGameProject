@@ -18,20 +18,25 @@ namespace Misc
 
         [Header("FileUploadSettings")]
         [Tooltip("no special character")]
-        public List<string> potentialSuffix = new List<string>();
+        public List<string> potentialSuffix = new();
         [Tooltip("no special character")]
-        public List<string> potentialPrefix = new List<string>();
+        public List<string> potentialPrefix = new();
         [Tooltip("no special character")]
-        public List<string> potentialExtension = new List<string>();
+        public List<string> potentialExtension = new();
         public int numOfFilesToGenerate = 10;
         public int numOfUploadsReq = 1;
         public int numOfUploadedFiles = 0;
 
-        private Dictionary<int, UploadTask> _activeTasks = new Dictionary<int, UploadTask>();
-        private List<string> _generatedFiles = new List<string>();
+        private Dictionary<int, UploadTask> _activeTasks = new();
+        private List<string> _generatedFiles = new();
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
+        {
+            InitUploadTaskList();
+        }
+
+        private void Awake()
         {
             if (Instance == null)
             {
@@ -57,8 +62,6 @@ namespace Misc
             {
                 Debug.LogWarning("Potential extension is empty");
             }
-            
-            InitUploadTaskList();
         }
 
         private void InitUploadTaskList()

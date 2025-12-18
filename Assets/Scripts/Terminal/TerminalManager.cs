@@ -50,7 +50,6 @@ namespace Terminal
         {
             _potentialDirs = TaskManager.Instance.GetGeneratedFiles();
             int terminalIndex = 0;
-            Debug.Log(_potentialDirs.Count);
             for (int i = 0; i < _potentialDirs.Count; i++)
             {
                 _activeTerminals[terminalIndex].GetComponent<TerminalController>().AddDir(_potentialDirs[i]);

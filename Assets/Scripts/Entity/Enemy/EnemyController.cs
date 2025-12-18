@@ -26,7 +26,13 @@ namespace Entity.Enemy
         protected override void Start()
         {
             base.Start();
-            
+
+            EnemyManager.Instance.RegisterEnemy(gameObject);
+            _navMeshAgent.SetStoppingDistance(sphereCollider.radius);
+        }
+
+        private void Awake()
+        {
             if (_navMeshAgent == null)
             {
                 Debug.LogError("EnemyController: NavMeshAgent is null");
@@ -36,13 +42,6 @@ namespace Entity.Enemy
             {
                 Debug.LogError("EnemyController: Sphere Collider is null");
             }
-
-            EnemyManager.Instance.RegisterEnemy(gameObject);
-            _navMeshAgent.SetStoppingDistance(sphereCollider.radius);
-        }
-
-        private void Awake()
-        {
             _navMeshAgent = GetComponent<EnemyNavAgentController>();
             _navMeshAgent.StartPathFinding();
             

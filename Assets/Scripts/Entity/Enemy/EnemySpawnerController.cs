@@ -27,6 +27,12 @@ namespace Entity.Enemy
             EventHub.OnGameEnd += OnGameEnd;
         }
 
+        private void OnDestroy()
+        {
+            EventHub.OnGameStart -= OnGameStart;
+            EventHub.OnGameEnd -= OnGameEnd;
+        }
+
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {

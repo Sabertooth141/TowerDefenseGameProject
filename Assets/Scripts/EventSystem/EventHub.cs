@@ -1,5 +1,5 @@
 ﻿using System;
-using Entity;
+using UnityEngine;
 
 namespace EventSystem
 {
@@ -19,6 +19,9 @@ namespace EventSystem
         public static event Action OnBuildingPressed;
         public static event Action OnBuildingConfirmed;
         public static event Action<int> OnTurretUpdate;
+        
+        // terminal events
+        public static event Action<bool, Transform> OnTerminalStatusChanged;
         
         // internal logic events
         public static event Action OnFilesGenerated;
@@ -62,6 +65,11 @@ namespace EventSystem
         public static void TriggerOnFilesGenerated()
         {
             OnFilesGenerated?.Invoke();
+        }
+
+        public static void TriggerOnTerminalStatusChanged(bool terminalStatus, Transform terminalScreen)
+        {
+            OnTerminalStatusChanged?.Invoke(terminalStatus, terminalScreen);
         }
     }
 }

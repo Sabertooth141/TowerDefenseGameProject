@@ -36,6 +36,13 @@ namespace Misc
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
+            _maxTurretCount = TurretManager.Instance.maxTurretCount;
+
+            CreateGhostTurret();
+        }
+
+        private void Awake()
+        {
             if (turretPrefabs.Length == 0)
             {
                 Debug.LogError("No turret prefab inputted");
@@ -50,10 +57,6 @@ namespace Misc
             {
                 Debug.LogError("BuildingController no PlayerCam selected");
             }
-            
-            _maxTurretCount = TurretManager.Instance.maxTurretCount;
-            
-            CreateGhostTurret();
         }
 
         private void OnEnable()

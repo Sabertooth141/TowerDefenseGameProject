@@ -26,20 +26,26 @@ namespace Entity.Turret
         public bool HasTargets => targets.Count > 0;
 
         private float _resetTimer;
-        private List<GameObject> _targetsToCheck;
+        private List<GameObject> _targetsToCheck = new();
         private float _range;
 
         [HideInInspector] public GameObject currTarget;
-        [HideInInspector] public List<GameObject> targets;
+        [HideInInspector] public List<GameObject> targets = new();
 
         [HideInInspector] public TurretStateMachine.TurretStateMachine stateMachine;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            targets = new List<GameObject>();
-            _targetsToCheck = new List<GameObject>();
+            stateMachine = new TurretStateMachine.TurretStateMachine();
+            stateMachine.ChangeState(new TurretIdleState(this));
 
+            _range = detectionCollider.radius;
+            TurretManager.Instance.RegisterTurret(gameObject);
+        }
+
+        private void Awake()
+        {
             if (turretHead == null)
             {
                 Debug.LogError("TurretHead field is missing");
@@ -54,12 +60,6 @@ namespace Entity.Turret
             {
                 Debug.LogError("DetectionCollider field is missing");
             }
-
-            stateMachine = new TurretStateMachine.TurretStateMachine();
-            stateMachine.ChangeState(new TurretIdleState(this));
-
-            _range = detectionCollider.radius;
-            TurretManager.Instance.RegisterTurret(gameObject);
         }
 
         private void OnEnable()

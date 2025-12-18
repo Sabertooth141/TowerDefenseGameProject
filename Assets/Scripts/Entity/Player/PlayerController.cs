@@ -68,8 +68,6 @@ namespace Entity.Player
         {
             base.Start();
 
-            NullCheck();
-
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
@@ -81,6 +79,7 @@ namespace Entity.Player
 
         private void Awake()
         {
+            NullCheck();
             _rb = GetComponent<Rigidbody>();
             _inputReader = GetComponent<PlayerInputReader>();
             _capsuleCollider = GetComponentInChildren<CapsuleCollider>();

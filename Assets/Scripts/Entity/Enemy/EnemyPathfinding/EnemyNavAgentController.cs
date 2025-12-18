@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -10,8 +11,7 @@ namespace Entity.Enemy.EnemyPathfinding
 
         private bool _isPathFinding;
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
+        private void Awake()
         {
             if (target == null)
             {
