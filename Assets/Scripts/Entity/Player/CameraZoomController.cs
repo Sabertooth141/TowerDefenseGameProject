@@ -9,6 +9,7 @@ namespace Entity.Player
         [Header("References")]
         public Camera playerCam;
         public PlayerController playerController;
+        public GameObject playerModel;
 
         [Header("Zoom Settings")]
         public float zoomDistance = 1.5f;
@@ -46,6 +47,11 @@ namespace Entity.Player
             {
                 Debug.LogWarning("PlayerCam is null");
             }
+
+            if (playerModel == null)
+            {
+                Debug.LogWarning("PlayerModel is null");
+            }
         }
 
         void Update()
@@ -71,6 +77,7 @@ namespace Entity.Player
                     if (!_isTerminalOpened)
                     {
                         playerController.EnableMovement();
+                        playerModel.SetActive(true);
                     }
                 }
             }
@@ -91,6 +98,7 @@ namespace Entity.Player
             if (_isTerminalOpened)
             {
                 playerController.DisableMovement();
+                playerModel.SetActive(false);
 
                 // Store ORIGINAL position (where we'll return to)
                 _originalCamPosition = playerCam.transform.position;

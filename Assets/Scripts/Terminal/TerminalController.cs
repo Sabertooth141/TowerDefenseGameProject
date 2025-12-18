@@ -27,6 +27,7 @@ namespace Terminal
         [SerializeField] private TextMeshProUGUI outputText;
         [SerializeField] private ScrollRect scrollRect;
         [SerializeField] private RectTransform contentRect;
+        [SerializeField] private Camera terminalCamera;
 
         private PlayerController _playerController;
         private bool _terminalOpen;
@@ -37,7 +38,7 @@ namespace Terminal
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            terminalScreen.SetActive(false);
+            // terminalScreen.SetActive(false);
             InitCommands();
 
             cmdInput.onSubmit.AddListener(OnCommandSubmit);
@@ -67,6 +68,11 @@ namespace Terminal
             if (outputText == null)
             {
                 Debug.LogError("TerminalController: output text field is null");
+            }
+
+            if (terminalCamera == null)
+            {
+                Debug.LogError("TerminalController: camera field is null");
             }
 
             if (scrollRect == null)
@@ -99,10 +105,12 @@ namespace Terminal
             }
 
             _terminalOpen = true;
-            terminalScreen.SetActive(true);
+            // terminalScreen.SetActive(true);
 
             cmdInput.text = "";
             cmdInput.ActivateInputField();
+
+            terminalCamera.enabled = true;
             
             EventHub.TriggerOnTerminalStatusChanged(true, terminalScreen.transform);
         }
@@ -114,8 +122,12 @@ namespace Terminal
                 return;
             }
 
+            cmdInput.DeactivateInputField();
             _terminalOpen = false;
-            terminalScreen.SetActive(false);
+            
+            terminalCamera.enabled = false;
+            
+            // terminalScreen.SetActive(false);
             // _playerController.EnableMovement();
             
             EventHub.TriggerOnTerminalStatusChanged(false, terminalScreen.transform);

@@ -11,12 +11,10 @@ namespace Entity.Turret
         
         public int maxTurretCount = 10;
 
-        private List<GameObject> _turretObjects;
+        private List<GameObject> _turretObjects = new();
 
         private void Awake()
         {
-            _turretObjects = new List<GameObject>();
-
             if (Instance == null)
             {
                 Instance = this;

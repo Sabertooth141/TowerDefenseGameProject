@@ -17,14 +17,14 @@ namespace UI
 
         private void Start()
         {
-            EventHub.OnGoalHurt += HandleGoalHurt;
-            EventHub.OnTurretUpdate += HandleTurretUpdate;
-            
             InitUIComponents();
         }
 
         private void Awake()
         {
+            EventHub.OnGoalHurt += HandleGoalHurt;
+            EventHub.OnTurretUpdate += HandleTurretUpdate;
+            
             CheckNull();
         }
 
