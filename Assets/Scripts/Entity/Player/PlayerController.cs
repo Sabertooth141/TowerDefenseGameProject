@@ -67,7 +67,7 @@ namespace Entity.Player
         protected override void Start()
         {
             base.Start();
-
+            
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
@@ -155,8 +155,11 @@ namespace Entity.Player
 
             if (isAiming)
             {
-                Vector3 lookDirection = cameraTransform.forward;
-                lookDirection.y = 0;
+                RaycastHit cameraAimingPoint;
+                Physics.Raycast(cameraController.GetRay(), out cameraAimingPoint);
+                
+                Vector3 lookDirection = (cameraAimingPoint.point - transform.position).normalized;
+                // lookDirection.y = 0;
 
                 if (lookDirection != Vector3.zero)
                 {

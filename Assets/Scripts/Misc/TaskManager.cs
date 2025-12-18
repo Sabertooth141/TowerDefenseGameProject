@@ -24,11 +24,14 @@ namespace Misc
         [Tooltip("no special character")]
         public List<string> potentialExtension = new();
         public int numOfFilesToGenerate = 10;
-        public int numOfUploadsReq = 1;
-        public int numOfUploadedFiles = 0;
+
+        [Header("Task Settings")]
+        public int maxNumOfTaskFiles = 3;
 
         private Dictionary<int, UploadTask> _activeTasks = new();
         private List<string> _generatedFiles = new();
+        private List<string> _taskFiles = new();
+        private int _numOfUploadedFiles = 0;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
@@ -83,6 +86,15 @@ namespace Misc
                 string selectedExtension = potentialExtension[Random.Range(0, potentialExtension.Count)];
                 string fileName = selectedPrefix + "_" + selectedSuffix + "." + selectedExtension;
                 _generatedFiles.Add(fileName);
+                if (Random.Range(0, 100) > 60 && _taskFiles.Count < maxNumOfTaskFiles)
+                {
+                    _taskFiles.Add(fileName);                
+                }
+            }
+
+            if (_taskFiles.Count <= 0)
+            {
+                _taskFiles.Add(_generatedFiles[Random.Range(0, _generatedFiles.Count)]);
             }
             
             EventHub.TriggerOnFilesGenerated();
@@ -95,6 +107,30 @@ namespace Misc
                 return new List<string>();
             }
             return _generatedFiles;
+        }
+
+        public List<string> GetTaskFiles()
+        {
+            return _taskFiles;
+        }
+
+        public String[] SendChallengeMsg(int winID)
+        {
+            string allowedExtensions = "";
+            foreach (var extension in potentialExtension)
+            {
+                allowedExtensions += extension + ", ";
+            }
+            return new[]
+            {
+                "[SERVER -> CLIENT]:",
+                "flags: SYN-ACK",
+                "type: <upload-challenge>",
+                $"WIN: {winID}",
+                $"allowed-types: {allowedExtensions}",
+                $"server-id: sev_{name + GetInstanceID()}",
+                $"session-time: {Time.deltaTime}"
+            };
         }
     }
 }

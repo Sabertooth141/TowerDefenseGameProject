@@ -39,10 +39,7 @@ namespace Entity.Player
 
         private void Shoot()
         {
-            Ray shootRay = new Ray(cameraController.GetCameraTransform().position,
-                cameraController.GetCameraDirection());
-
-            if (Physics.Raycast(shootRay, out RaycastHit hit, range))
+            if (Physics.Raycast(cameraController.GetRay(), out RaycastHit hit, range))
             {
                 Instantiate(hitIndicate, hit.point, hit.transform.rotation);
                 if (hit.transform.CompareTag("Enemy"))

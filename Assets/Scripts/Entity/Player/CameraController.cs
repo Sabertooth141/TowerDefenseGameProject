@@ -39,6 +39,7 @@ namespace Entity.Player
         private float _currDistance;
         private bool _isAiming = false;
         private bool _isEnabled;
+        private Ray _aimingRay;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
@@ -90,6 +91,22 @@ namespace Entity.Player
             HandleRotation();
             HandleCamPosition();
             HandleFOV();
+            HandleAiming();
+        }
+
+        private void HandleAiming()
+        {
+            if (!_isAiming)
+            {
+                return;
+            }
+            
+            _aimingRay = new Ray(GetCameraTransform().position, GetCameraDirection());
+        }
+
+        public Ray GetRay()
+        {
+            return _aimingRay;
         }
 
         private void UpdatePivotPos()

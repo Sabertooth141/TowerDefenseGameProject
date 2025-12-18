@@ -1,13 +1,17 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Entity.Player;
 using EventSystem;
+using Misc;
 using TMPro;
+using UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 namespace Terminal
 {
@@ -28,8 +32,10 @@ namespace Terminal
         [SerializeField] private ScrollRect scrollRect;
         [SerializeField] private RectTransform contentRect;
         [SerializeField] private Camera terminalCamera;
+        [SerializeField] private TaskManager taskManager;
 
         private PlayerController _playerController;
+        private UIController _uiController;
         private bool _terminalOpen;
         private List<String> _outputLines = new();
         private Dictionary<String, TerminalCommand> _commands = new();
@@ -38,7 +44,6 @@ namespace Terminal
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            // terminalScreen.SetActive(false);
             InitCommands();
 
             cmdInput.onSubmit.AddListener(OnCommandSubmit);
@@ -54,6 +59,8 @@ namespace Terminal
             {
                 _playerController = FindAnyObjectByType<PlayerController>();
             }
+            
+            _uiController = _playerController.gameObject.GetComponent<UIController>();
 
             if (terminalScreen == null)
             {
@@ -73,6 +80,11 @@ namespace Terminal
             if (terminalCamera == null)
             {
                 Debug.LogError("TerminalController: camera field is null");
+            }
+
+            if (taskManager == null)
+            {
+                Debug.LogError("TerminalController: task manager is null");
             }
 
             if (scrollRect == null)
@@ -105,13 +117,13 @@ namespace Terminal
             }
 
             _terminalOpen = true;
-            // terminalScreen.SetActive(true);
+            _uiController.HideHUDPanel();
 
             cmdInput.text = "";
             cmdInput.ActivateInputField();
 
             terminalCamera.enabled = true;
-            
+
             EventHub.TriggerOnTerminalStatusChanged(true, terminalScreen.transform);
         }
 
@@ -122,14 +134,12 @@ namespace Terminal
                 return;
             }
 
+            _uiController.ShowHUDPanel();
             cmdInput.DeactivateInputField();
             _terminalOpen = false;
-            
+
             terminalCamera.enabled = false;
-            
-            // terminalScreen.SetActive(false);
-            // _playerController.EnableMovement();
-            
+
             EventHub.TriggerOnTerminalStatusChanged(false, terminalScreen.transform);
         }
 
@@ -162,7 +172,8 @@ namespace Terminal
 
         private void ProcessCmd(string cmd)
         {
-            if (!_commands.ContainsKey(cmd.ToUpper()))
+            string[] args = cmd.Split(" ");
+            if (!_commands.ContainsKey(args[0].ToUpper()))
             {
                 AddOutput($"ERROR: Unknown command '{cmd}', type 'HELP' for available commands");
                 cmdInput.text = "";
@@ -172,7 +183,7 @@ namespace Terminal
 
             try
             {
-                _commands[cmd.ToUpper()].callback?.Invoke(cmd.Split(' '));
+                _commands[args[0].ToUpper()].callback?.Invoke(args);
             }
             catch (Exception e)
             {
@@ -224,7 +235,8 @@ namespace Terminal
                 AddOutput("---------------------------------------------");
             });
 
-            RegisterCmd("DIR", "Show all directories", (args) =>
+            // DIR
+            RegisterCmd("DIR", "Shows all directories", (args) =>
             {
                 AddOutput("==== DIRECTORIES ====");
                 foreach (var dir in _storedDir)
@@ -235,8 +247,79 @@ namespace Terminal
                 AddOutput("---------------------------------------------");
             });
 
-            // FOR TEST
-            RegisterCmd("UPLOAD", "TEST CMD", (args) => { });
+            // UPLOAD
+            RegisterCmd("UPLOAD", "Available Syntax: 'UPLOAD <filename>'", HandleUpload);
+        }
+
+        private void HandleUpload(string[] args)
+        {
+            StartCoroutine(Verification(args));
+        }
+
+        private IEnumerator Verification(string[] args)
+        {
+            AddOutput("==== FILE UPLOAD ====");
+            yield return new WaitForSeconds(0.1f);
+            // verify args
+            if (args.Length >= 3 || args.Length == 1)
+            {
+                AddOutput("UNKNOWN ARGUMENT FOR 'UPLOAD'");
+                AddOutput("Correct Syntax: UPLOAD <filename>");
+                yield break;
+            }
+
+            AddOutput("CLIENT: Requesting upload persmission...");
+            AddOutput("---------------------------------------------");
+            yield return new WaitForSeconds(0.2f);
+            int winID = Random.Range(20000, 65535);
+            string[] reqMsg = GenerateReq(winID);
+            foreach (var line in reqMsg)
+            {
+                AddOutput(line);
+                yield return new WaitForSeconds(0.05f);
+            }
+            yield return new WaitForSeconds(Random.Range(0.4f, 1.0f));
+            AddOutput("---------------------------------------------");
+
+            AddOutput("SERVER: Receiving challenge message...");
+            yield return new WaitForSeconds(0.2f);
+            AddOutput("---------------------------------------------");
+            string[] serverChallenge = taskManager.SendChallengeMsg(winID);
+
+            foreach (var line in serverChallenge)
+            {
+                AddOutput(line);
+                yield return new WaitForSeconds(0.05f);
+            }
+            AddOutput("---------------------------------------------");
+        }
+
+        private string[] GenerateReq(int winID)
+        {
+            return new[]
+            {
+                "[CLIENT -> SERVER]:",
+                "flags: SYN",
+                "type: <upload>",
+                $"WIN: {winID}",
+                $"session-id: sess_{name + GetInstanceID()}",
+                $"session-time: {Time.deltaTime}"
+            };
+        }
+
+        private string[] GenerateChallenge(string filename)
+        {
+            return new[]
+            {
+                "flags: SYN-ACK", "type: <upload>", "protoc_ver: 1.1", "timestamp: {{Time.deltaTime}}",
+                "filename: {filename}",
+                $"client_id: {name}-{GetInstanceID()}"
+            };
+        }
+
+        private IEnumerator UploadFiles(string[] arg)
+        {
+            yield return null;
         }
 
         private void ClearOutput()

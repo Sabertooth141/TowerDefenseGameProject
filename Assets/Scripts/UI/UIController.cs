@@ -92,5 +92,15 @@ namespace UI
             EventHub.OnGoalHurt -= HandleGoalHurt;
             EventHub.OnTurretUpdate -= HandleTurretUpdate;
         }
+        
+        public void HideHUDPanel()
+        {
+            hudPanel.SetActive(false);
+        }
+
+        public void ShowHUDPanel()
+        {
+            hudPanel.SetActive(true);
+        }
     }
 }
