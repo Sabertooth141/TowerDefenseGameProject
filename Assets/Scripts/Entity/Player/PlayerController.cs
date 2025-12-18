@@ -79,7 +79,6 @@ namespace Entity.Player
 
         private void Awake()
         {
-            NullCheck();
             _rb = GetComponent<Rigidbody>();
             _inputReader = GetComponent<PlayerInputReader>();
             _capsuleCollider = GetComponentInChildren<CapsuleCollider>();
@@ -87,6 +86,8 @@ namespace Entity.Player
             _rb.useGravity = false;
             _rb.isKinematic = false;
             _rb.freezeRotation = true;
+            
+            NullCheck();
         }
 
         protected override void Update()

@@ -33,6 +33,11 @@ namespace Entity.Enemy
 
         private void Awake()
         {
+            _navMeshAgent = GetComponent<EnemyNavAgentController>();
+            _navMeshAgent.StartPathFinding();
+            
+            _isActive = true;
+            
             if (_navMeshAgent == null)
             {
                 Debug.LogError("EnemyController: NavMeshAgent is null");
@@ -42,10 +47,6 @@ namespace Entity.Enemy
             {
                 Debug.LogError("EnemyController: Sphere Collider is null");
             }
-            _navMeshAgent = GetComponent<EnemyNavAgentController>();
-            _navMeshAgent.StartPathFinding();
-            
-            _isActive = true;
         }
 
         // Update is called once per frame

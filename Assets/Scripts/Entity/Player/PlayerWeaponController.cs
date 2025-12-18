@@ -1,3 +1,4 @@
+using System;
 using Entity.Player;
 using UnityEngine;
 
@@ -18,8 +19,7 @@ namespace Entity.Player
 
         private float _nextFireTime = 0;
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
+        private void Awake()
         {
             if (inputReader == null)
             {
