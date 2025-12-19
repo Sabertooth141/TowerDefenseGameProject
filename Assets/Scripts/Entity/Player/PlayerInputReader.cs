@@ -27,6 +27,8 @@ namespace Entity.Player
             _controls.Player.Move.canceled += ctx => MovementInput = Vector2.zero;
 
             _controls.Player.Look.performed += ctx => LookInput = ctx.ReadValue<Vector2>();
+            
+            
             _controls.Player.Look.canceled += ctx => LookInput = Vector2.zero;
 
             _controls.Player.Jump.performed += ctx => JumpPressed = true;
