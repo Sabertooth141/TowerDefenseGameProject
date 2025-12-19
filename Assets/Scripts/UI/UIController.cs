@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Entity.Turret;
 using EventSystem;
+using Misc;
 using TMPro;
 using UnityEngine;
 
@@ -14,6 +16,7 @@ namespace UI
         [SerializeField] private TextMeshProUGUI enemyGoalHpIndic;
         [SerializeField] private TextMeshProUGUI interactionText;
         [SerializeField] private TextMeshProUGUI availableTurretsText;
+        [SerializeField] private TextMeshProUGUI currentTasksText;
 
         private void Start()
         {
@@ -22,9 +25,11 @@ namespace UI
 
         private void Awake()
         {
+            // due to start order has to stay in awake
             EventHub.OnGoalHurt += HandleGoalHurt;
             EventHub.OnTurretUpdate += HandleTurretUpdate;
-            
+            EventHub.OnFilesGenerated += HandleTaskDisplay;
+            EventHub.OnUploadFileComplete += HandleTaskDisplay;
             CheckNull();
         }
 
@@ -54,6 +59,11 @@ namespace UI
             {
                 Debug.LogError("PlayerController: AvailableTurretsText not found");
             }
+            
+            if (currentTasksText == null)
+            {
+                Debug.LogError("PlayerController: CurrentTasksText not found");
+            }
         }
 
         private void InitUIComponents()
@@ -64,6 +74,16 @@ namespace UI
             }
             enemyGoalHpText.text = "";
             interactionText.text = "";
+        }
+
+        private void HandleTaskDisplay()
+        {
+            Dictionary<string, int> currentTasks = TaskManager.Instance.GetTaskFiles();
+            currentTasksText.text = "";
+            foreach (KeyValuePair<string, int> task in currentTasks)
+            {
+                currentTasksText.text +=  $"{task.Key}\n";
+            }
         }
 
         private void HandleGoalHurt(float goalCurrHp, float goalMaxHp)

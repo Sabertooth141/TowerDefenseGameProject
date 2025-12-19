@@ -33,24 +33,45 @@ namespace Terminal
         [SerializeField] private RectTransform contentRect;
         [SerializeField] private Camera terminalCamera;
         [SerializeField] private TaskManager taskManager;
+        [SerializeField] private FileUploadController uploadController;
+
+        [Header("Terminal settings")]
+        public int maxOutputLInes = 50;
 
         private PlayerController _playerController;
         private UIController _uiController;
         private bool _terminalOpen;
+        private bool _terminalFocused;
+        private bool _isExecutingCmd;
         private List<String> _outputLines = new();
         private Dictionary<String, TerminalCommand> _commands = new();
-        private List<string> _storedDir = new();
+        private Dictionary<string, int> _storedDir = new();
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
             InitCommands();
 
+            EventHub.OnExecuteCommand += HandleOnExecuteCmd;
+            EventHub.OnCommandComplete += HandleOnCmdComplete;
+            
             cmdInput.onSubmit.AddListener(OnCommandSubmit);
 
             AddOutput("TERMINAL V2.4.1 INITIALIZED");
             AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
             AddOutput("---------------------------------------------");
+
+            cmdInput.text = "";
+        }
+
+        private void HandleOnCmdComplete()
+        {
+            _isExecutingCmd = false;
+        }
+
+        private void HandleOnExecuteCmd()
+        {
+            _isExecutingCmd = true;
         }
 
         private void Awake()
@@ -59,7 +80,7 @@ namespace Terminal
             {
                 _playerController = FindAnyObjectByType<PlayerController>();
             }
-            
+
             _uiController = _playerController.gameObject.GetComponent<UIController>();
 
             if (terminalScreen == null)
@@ -86,6 +107,11 @@ namespace Terminal
             {
                 Debug.LogError("TerminalController: task manager is null");
             }
+            
+            if (uploadController == null)
+            {
+                Debug.LogError("TerminalController: upload controller is null");
+            }
 
             if (scrollRect == null)
             {
@@ -100,11 +126,16 @@ namespace Terminal
         // Update is called once per frame
         void Update()
         {
-            if (_terminalOpen)
+            if (!_terminalOpen)
+            {
+                return;
+            }
+            
+            if (_terminalFocused)
             {
                 if (Keyboard.current.leftCtrlKey.wasPressedThisFrame)
                 {
-                    CloseTerminal();
+                    UnfocusTerminal();
                 }
             }
         }
@@ -117,14 +148,7 @@ namespace Terminal
             }
 
             _terminalOpen = true;
-            _uiController.HideHUDPanel();
-
-            cmdInput.text = "";
-            cmdInput.ActivateInputField();
-
-            terminalCamera.enabled = true;
-
-            EventHub.TriggerOnTerminalStatusChanged(true, terminalScreen.transform);
+            FocusTerminal();
         }
 
         public void CloseTerminal()
@@ -133,18 +157,63 @@ namespace Terminal
             {
                 return;
             }
+            
+            _terminalOpen = false;
+            UnfocusTerminal(); 
+        }
 
-            _uiController.ShowHUDPanel();
-            cmdInput.DeactivateInputField();
+        private void FocusTerminal()
+        {
+            _terminalFocused = true;
+
+            _uiController.HideHUDPanel();
+            terminalCamera.enabled = true;
+
+            UnlockInput();
+            
+            int len = cmdInput.text.Length;
+            cmdInput.caretPosition = len;
+            cmdInput.selectionAnchorPosition = len;
+            cmdInput.selectionFocusPosition = len;
+
+            EventHub.TriggerOnTerminalStatusChanged(true, terminalScreen.transform);
+        }
+        
+        public void UnfocusTerminal()
+        {
+            _terminalFocused = false;
             _terminalOpen = false;
 
-            terminalCamera.enabled = false;
+            _uiController.ShowHUDPanel();
+            // terminalCamera.enabled = false;
+
+            LockInput();
+
+            // Clear selected UI so keyboard doesn’t go to TMP
+            UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
 
             EventHub.TriggerOnTerminalStatusChanged(false, terminalScreen.transform);
         }
 
-        private void AddOutput(string output)
+        public void LockInput()
         {
+            cmdInput.DeactivateInputField();
+            cmdInput.interactable = false;
+        }
+
+        public void UnlockInput()
+        {
+            cmdInput.interactable = true;
+            cmdInput.ActivateInputField();
+        }
+        
+        public void AddOutput(string output)
+        {
+            if (_outputLines.Count >= 50)
+            {
+                _outputLines.RemoveAt(0);
+            }
+            
             _outputLines.Add(output);
             outputText.text = string.Join("\n", _outputLines);
 
@@ -156,6 +225,17 @@ namespace Terminal
             }
         }
 
+        public int GetCurrentLineIndex()
+        {
+            return _outputLines.Count - 1;
+        }
+
+        public void UpdateOutputLine(int lineIndex, string message)
+        {
+            _outputLines[lineIndex] =  message;
+            outputText.text = string.Join("\n", _outputLines);
+        }
+
         private void OnCommandSubmit(string command)
         {
             if (string.IsNullOrWhiteSpace(command))
@@ -164,6 +244,17 @@ namespace Terminal
                 return;
             }
 
+            if (_isExecutingCmd)
+            {
+                cmdInput.text = "";
+                cmdInput.ActivateInputField();
+                Debug.Log("no");
+                return;
+            }
+            
+            Debug.Log("yes");
+
+            EventHub.TriggerOnExecuteCommand();
             ProcessCmd(command);
 
             cmdInput.text = "";
@@ -178,6 +269,7 @@ namespace Terminal
                 AddOutput($"ERROR: Unknown command '{cmd}', type 'HELP' for available commands");
                 cmdInput.text = "";
                 cmdInput.ActivateInputField();
+                EventHub.TriggerOnCommandCompleted();
                 return;
             }
 
@@ -188,8 +280,9 @@ namespace Terminal
             catch (Exception e)
             {
                 AddOutput($"ERROR: Command execution failed - {e.Message}");
+                EventHub.TriggerOnCommandCompleted();
             }
-
+            
             cmdInput.text = "";
             cmdInput.ActivateInputField();
         }
@@ -224,6 +317,7 @@ namespace Terminal
                 {
                     AddOutput($"{cmd.Key}: {cmd.Value.description}");
                 }
+                EventHub.TriggerOnCommandCompleted();
             });
 
             // CLEAR
@@ -233,6 +327,7 @@ namespace Terminal
                 AddOutput("TERMINAL V2.4.1 INITIALIZED");
                 AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
                 AddOutput("---------------------------------------------");
+                EventHub.TriggerOnCommandCompleted();
             });
 
             // DIR
@@ -241,10 +336,11 @@ namespace Terminal
                 AddOutput("==== DIRECTORIES ====");
                 foreach (var dir in _storedDir)
                 {
-                    AddOutput($"{dir}");
+                    AddOutput($"[{dir.Key},  {dir.Value}KB]");
                 }
 
                 AddOutput("---------------------------------------------");
+                EventHub.TriggerOnCommandCompleted();
             });
 
             // UPLOAD
@@ -253,10 +349,10 @@ namespace Terminal
 
         private void HandleUpload(string[] args)
         {
-            StartCoroutine(Verification(args));
+            StartCoroutine(UploadFiles(args));
         }
 
-        private IEnumerator Verification(string[] args)
+        private IEnumerator UploadFiles(string[] args)
         {
             AddOutput("==== FILE UPLOAD ====");
             yield return new WaitForSeconds(0.1f);
@@ -265,61 +361,18 @@ namespace Terminal
             {
                 AddOutput("UNKNOWN ARGUMENT FOR 'UPLOAD'");
                 AddOutput("Correct Syntax: UPLOAD <filename>");
+                EventHub.TriggerOnCommandCompleted();
                 yield break;
             }
 
-            AddOutput("CLIENT: Requesting upload persmission...");
-            AddOutput("---------------------------------------------");
-            yield return new WaitForSeconds(0.2f);
-            int winID = Random.Range(20000, 65535);
-            string[] reqMsg = GenerateReq(winID);
-            foreach (var line in reqMsg)
+            if (!_storedDir.ContainsKey(args[1].ToLower()))
             {
-                AddOutput(line);
-                yield return new WaitForSeconds(0.05f);
+                AddOutput("Directory not found");
+                EventHub.TriggerOnCommandCompleted();
+                yield break;
             }
-            yield return new WaitForSeconds(Random.Range(0.4f, 1.0f));
-            AddOutput("---------------------------------------------");
-
-            AddOutput("SERVER: Receiving challenge message...");
-            yield return new WaitForSeconds(0.2f);
-            AddOutput("---------------------------------------------");
-            string[] serverChallenge = taskManager.SendChallengeMsg(winID);
-
-            foreach (var line in serverChallenge)
-            {
-                AddOutput(line);
-                yield return new WaitForSeconds(0.05f);
-            }
-            AddOutput("---------------------------------------------");
-        }
-
-        private string[] GenerateReq(int winID)
-        {
-            return new[]
-            {
-                "[CLIENT -> SERVER]:",
-                "flags: SYN",
-                "type: <upload>",
-                $"WIN: {winID}",
-                $"session-id: sess_{name + GetInstanceID()}",
-                $"session-time: {Time.deltaTime}"
-            };
-        }
-
-        private string[] GenerateChallenge(string filename)
-        {
-            return new[]
-            {
-                "flags: SYN-ACK", "type: <upload>", "protoc_ver: 1.1", "timestamp: {{Time.deltaTime}}",
-                "filename: {filename}",
-                $"client_id: {name}-{GetInstanceID()}"
-            };
-        }
-
-        private IEnumerator UploadFiles(string[] arg)
-        {
-            yield return null;
+            
+            uploadController.StartVerification(args);
         }
 
         private void ClearOutput()
@@ -328,9 +381,9 @@ namespace Terminal
             outputText.text = "";
         }
 
-        public void AddDir(string dir)
+        public void AddDir(string dir, int fileSize)
         {
-            _storedDir.Add(dir);
+            _storedDir.Add(dir, fileSize);
         }
 
         private void OnInputChanged(string command)

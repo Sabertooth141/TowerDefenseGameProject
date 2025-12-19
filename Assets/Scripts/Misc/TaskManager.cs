@@ -1,37 +1,29 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using EventSystem;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Misc
 {
-    public struct UploadTask
-    {
-        public string taskDir;
-        public GameObject terminalToUpload;
-    }
-
     public class TaskManager : MonoBehaviour
     {
         public static TaskManager Instance { get; private set; }
 
         [Header("FileUploadSettings")]
-        [Tooltip("no special character")]
-        public List<string> potentialSuffix = new();
-        [Tooltip("no special character")]
-        public List<string> potentialPrefix = new();
-        [Tooltip("no special character")]
-        public List<string> potentialExtension = new();
+        [Tooltip("no special character")] public List<string> potentialSuffix = new();
+        [Tooltip("no special character")] public List<string> potentialPrefix = new();
+        [Tooltip("no special character")] public List<string> potentialExtension = new();
         public int numOfFilesToGenerate = 10;
+        [SerializeField] private int maxFileSize = 1048;
 
         [Header("Task Settings")]
         public int maxNumOfTaskFiles = 3;
 
-        private Dictionary<int, UploadTask> _activeTasks = new();
-        private List<string> _generatedFiles = new();
-        private List<string> _taskFiles = new();
-        private int _numOfUploadedFiles = 0;
+        private Dictionary<string, int> _generatedFiles = new();
+        private Dictionary<string, int> _taskFiles = new();
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
@@ -78,40 +70,63 @@ namespace Misc
             {
                 return;
             }
-            
+
             for (int i = 0; i < numOfFilesToGenerate; i++)
             {
-                string selectedPrefix = potentialPrefix[Random.Range(0, potentialPrefix.Count)];
-                string selectedSuffix = potentialSuffix[Random.Range(0, potentialSuffix.Count)];
-                string selectedExtension = potentialExtension[Random.Range(0, potentialExtension.Count)];
-                string fileName = selectedPrefix + "_" + selectedSuffix + "." + selectedExtension;
-                _generatedFiles.Add(fileName);
+                int selectedPrefix = Random.Range(0, potentialPrefix.Count);
+                int selectedSuffix = Random.Range(0, potentialSuffix.Count);
+                int selectedExtension = Random.Range(0, potentialExtension.Count);
+                string fileName = potentialPrefix[selectedPrefix] + "_" +
+                                  potentialSuffix[selectedSuffix] + "." +
+                                  potentialExtension[selectedExtension];
+                
+                while (_generatedFiles.ContainsKey(fileName))
+                {
+                    fileName = potentialPrefix[(selectedPrefix + 2) %  potentialPrefix.Count] + "_" +
+                               potentialSuffix[(selectedSuffix + 1) % potentialSuffix.Count] + "." +
+                               potentialExtension[selectedExtension];
+                }
+
+                int fileSize = Random.Range(0, maxFileSize);
+                _generatedFiles.Add(fileName, fileSize);
                 if (Random.Range(0, 100) > 60 && _taskFiles.Count < maxNumOfTaskFiles)
                 {
-                    _taskFiles.Add(fileName);                
+                    _taskFiles.Add(fileName, fileSize);
                 }
             }
 
             if (_taskFiles.Count <= 0)
             {
-                _taskFiles.Add(_generatedFiles[Random.Range(0, _generatedFiles.Count)]);
+                _taskFiles.Add(_generatedFiles.ElementAt(0).Key, _generatedFiles.ElementAt(0).Value);
             }
-            
+
             EventHub.TriggerOnFilesGenerated();
         }
 
-        public List<string> GetGeneratedFiles()
+        public Dictionary<string, int> GetGeneratedFiles()
         {
             if (_generatedFiles.Count == 0)
             {
-                return new List<string>();
+                return new Dictionary<string, int>();
             }
+
             return _generatedFiles;
         }
 
-        public List<string> GetTaskFiles()
+        public Dictionary<string, int> GetTaskFiles()
         {
             return _taskFiles;
+        }
+
+        public KeyValuePair<string, int> GetFileByName(string fileName)
+        {
+            int fileSize;
+            if (_taskFiles.TryGetValue(fileName, out fileSize))
+            {
+                return new KeyValuePair<string, int>(fileName, fileSize);
+            }
+
+            return new KeyValuePair<string, int>(fileName, 0);
         }
 
         public String[] SendChallengeMsg(int winID)
@@ -121,6 +136,7 @@ namespace Misc
             {
                 allowedExtensions += extension + ", ";
             }
+
             return new[]
             {
                 "[SERVER -> CLIENT]:",
@@ -131,6 +147,58 @@ namespace Misc
                 $"server-id: sev_{name + GetInstanceID()}",
                 $"session-time: {Time.deltaTime}"
             };
+        }
+
+        public bool VerifyFilename(string filename, int winID, out string[] response)
+        {
+            if (_taskFiles.Count <= 0 || !_taskFiles.ContainsKey(filename))
+            {
+                response = new[]
+                {
+                    "[SERVER -> CLIENT]:",
+                    "flags: RST, ACK",
+                    "type: <upload-rejected>",
+                    "status: 401 Unauthorized",
+                    $"WIN: {winID}",
+                    $"server-id: sev_{name + GetInstanceID()}",
+                    $"error-code: ERR_CHALLENGE_FAILED",
+                    $"error-msg: Client response verification failed",
+                    $"expected-hash: [REDACTED]",
+                    $"received-hash: [INVALID]",
+                    $"session-time: {Time.deltaTime}",
+                    "connection: TERMINATED"
+                };
+                return false;
+            }
+
+            response = new[]
+            {
+                "[SERVER -> CLIENT]:",
+                "flags: ACK",
+                "type: <upload-authorized>",
+                "status: 200 OK",
+                $"WIN: {winID}",
+                $"server-id: sev_{name + GetInstanceID()}",
+                $"upload-token: tkn_{Random.Range(10000, 99999)}",
+                $"session-time: {Time.deltaTime}",
+                "connection: ESTABLISHED"
+            };
+            return true;
+        }
+
+        public bool FinishTask(string filename)
+        {
+            if (_taskFiles.Remove(filename))
+            {
+                if (_taskFiles.Count <= 0)
+                {
+                    Debug.Log("ALL TASKS COMPLETED");
+                }
+                EventHub.TriggerOnUploadFileComplete();
+                return true;    
+            }
+
+            return false;
         }
     }
 }

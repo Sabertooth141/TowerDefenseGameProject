@@ -22,6 +22,9 @@ namespace EventSystem
         
         // terminal events
         public static event Action<bool, Transform> OnTerminalStatusChanged;
+        public static event Action OnExecuteCommand;
+        public static event Action OnCommandComplete;
+        public static event Action OnUploadFileComplete;
         
         // internal logic events
         public static event Action OnFilesGenerated;
@@ -70,6 +73,21 @@ namespace EventSystem
         public static void TriggerOnTerminalStatusChanged(bool terminalStatus, Transform terminalScreen)
         {
             OnTerminalStatusChanged?.Invoke(terminalStatus, terminalScreen);
+        }
+
+        public static void TriggerOnExecuteCommand()
+        {
+            OnExecuteCommand?.Invoke();
+        }
+
+        public static void TriggerOnCommandCompleted()
+        {
+            OnCommandComplete?.Invoke();
+        }
+
+        public static void TriggerOnUploadFileComplete()
+        {
+            OnUploadFileComplete?.Invoke();
         }
     }
 }

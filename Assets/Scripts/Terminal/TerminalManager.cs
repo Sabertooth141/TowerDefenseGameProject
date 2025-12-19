@@ -12,7 +12,7 @@ namespace Terminal
     {
         public static TerminalManager Instance { get; private set; }
 
-        private List<string> _potentialDirs = new List<string>();
+        private Dictionary<string, int> _potentialDirs = new();
         private List<GameObject> _activeTerminals = new List<GameObject>();
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
@@ -50,9 +50,10 @@ namespace Terminal
         {
             _potentialDirs = TaskManager.Instance.GetGeneratedFiles();
             int terminalIndex = 0;
-            for (int i = 0; i < _potentialDirs.Count; i++)
+            
+            foreach (KeyValuePair<string, int> dir in _potentialDirs)
             {
-                _activeTerminals[terminalIndex].GetComponent<TerminalController>().AddDir(_potentialDirs[i]);
+                _activeTerminals[terminalIndex].GetComponent<TerminalController>().AddDir(dir.Key, dir.Value);
                 terminalIndex++;
                 terminalIndex %= _activeTerminals.Count;
             }
