@@ -11,6 +11,7 @@ namespace Entity.Turret
     public class TurretController : MonoBehaviour
     {
         [Header("Turret Settings")]
+        [Tooltip("Select whichever ones that you want the turret to ignore")]
         public LayerMask losMask;
         public float rotationSpeed = 2.0f;
         public float timeToReset = 10.0f;

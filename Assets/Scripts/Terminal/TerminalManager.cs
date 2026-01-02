@@ -48,6 +48,11 @@ namespace Terminal
 
         private void InitDirInTerminals()
         {
+            if (_activeTerminals.Count == 0)
+            {
+                return;
+            }
+            
             _potentialDirs = TaskManager.Instance.GetGeneratedFiles();
             int terminalIndex = 0;
             

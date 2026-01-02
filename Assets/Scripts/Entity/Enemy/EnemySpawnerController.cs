@@ -18,7 +18,7 @@ namespace Entity.Enemy
         public int maxEnemies;
         public float checkInterval;
 
-        private List<Transform> _activeSpawnPos;
+        private List<Transform> _activeSpawnPos = new();
         private bool _gameRunning;
 
         private void Awake()
@@ -36,10 +36,7 @@ namespace Entity.Enemy
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            _activeSpawnPos = new List<Transform>();
-
             InitSpawnPoints();
-            StartCoroutine(SpawnLoop());
         }
 
         private void OnGameEnd()
@@ -50,6 +47,7 @@ namespace Entity.Enemy
         private void OnGameStart()
         {
             _gameRunning = true;
+            StartCoroutine(SpawnLoop());
         }
 
         private void InitSpawnPoints()

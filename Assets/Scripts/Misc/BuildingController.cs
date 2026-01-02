@@ -37,6 +37,7 @@ namespace Misc
         void Start()
         {
             _maxTurretCount = TurretManager.Instance.maxTurretCount;
+            EventHub.TriggerOnTurretUpdate(_maxTurretCount);
 
             CreateGhostTurret();
         }

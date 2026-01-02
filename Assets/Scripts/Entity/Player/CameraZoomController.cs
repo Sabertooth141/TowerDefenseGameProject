@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Entity.Player
 {
+    // handles camera zoom behavior when interacting with terminals
     public class CameraZoomController : MonoBehaviour
     {
         [Header("References")]
@@ -14,6 +15,7 @@ namespace Entity.Player
         [Header("Zoom Settings")]
         public float zoomDistance = 1.5f;
         public float zoomSpeed = 5f;
+        [Tooltip("For when screen is offset from the center")]
         public Vector3 screenOffset = Vector3.zero;
 
         private bool _isTerminalOpened = false;

@@ -67,7 +67,7 @@ namespace Entity.Player
         protected override void Start()
         {
             base.Start();
-            
+
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
@@ -86,7 +86,7 @@ namespace Entity.Player
             _rb.useGravity = false;
             _rb.isKinematic = false;
             _rb.freezeRotation = true;
-            
+
             NullCheck();
         }
 
@@ -157,7 +157,7 @@ namespace Entity.Player
             {
                 RaycastHit cameraAimingPoint;
                 Physics.Raycast(cameraController.GetRay(), out cameraAimingPoint);
-                
+
                 Vector3 lookDirection = (cameraAimingPoint.point - transform.position).normalized;
                 // lookDirection.y = 0;
 
@@ -233,31 +233,19 @@ namespace Entity.Player
 
         private void GroundCheck()
         {
-            Vector3 rayStart = transform.position + Vector3.up * GroundRayOffset;
-            float rayLength = groundCheckDist + GroundRayOffset;
-
-            _isGrounded = Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, rayLength, groundMask);
-
-            _isGrounded |= Physics.CheckSphere(
-                transform.position + Vector3.down * 0.7f,
-                _capsuleCollider.radius,
-                groundMask);
-
-            if (_isGrounded)
-            {
-                _isJumping = false;
-            }
-
-            // if (_isGrounded)
-            // {
-            //     Debug.DrawRay(rayStart, Vector3.down * hit.distance, Color.green);
-            //     Debug.Log($"Hit: {hit.collider.gameObject.name} at distance {hit.distance}");
-            // }
-            // else
-            // {
-            //     Debug.DrawRay(rayStart, Vector3.down * rayLength, Color.red);
-            //     Debug.Log("Ground raycast MISSED");
-            // }
+            Vector3 rayStart = transform.position;
+            float rayLength = groundCheckDist;
+    
+            // Simple raycast from center
+            _isGrounded = Physics.Raycast(rayStart, Vector3.down, rayLength, groundMask);
+    
+            // OR use sphere cast for better detection
+            // _isGrounded = Physics.SphereCast(rayStart, _capsuleCollider.radius * 0.9f, 
+            //                                   Vector3.down, out _, rayLength, groundMask);
+    
+            // Debug visualization
+            Debug.DrawRay(rayStart, Vector3.down * rayLength, 
+                _isGrounded ? Color.green : Color.red);
         }
 
         private void OnDrawGizmos()
@@ -276,61 +264,68 @@ namespace Entity.Player
         private void HandleMovement()
         {
             Vector2 movementInput = _inputReader.MovementInput;
-            Vector3 inputDir = new Vector3(movementInput.x, 0, movementInput.y).normalized;
 
-            // get movement velocity
-            if (inputDir.magnitude >= 0.01f)
+            if (movementInput.magnitude < 0.01f)
             {
-                Vector3 camForward = cameraTransform.forward;
-                Vector3 camRight = cameraTransform.right;
+                // Apply drag when no input
+                Vector3 velocity = _rb.linearVelocity;
+                velocity.x *= Mathf.Lerp(1f, 0f, deceleration * Time.fixedDeltaTime);
+                velocity.z *= Mathf.Lerp(1f, 0f, deceleration * Time.fixedDeltaTime);
+                _rb.linearVelocity = velocity;
+                return;
+            }
 
-                camForward.y = 0;
-                camRight.y = 0;
+            // Calculate movement direction
+            Vector3 inputDir = new Vector3(movementInput.x, 0, movementInput.y).normalized;
+            Vector3 camForward = cameraTransform.forward;
+            Vector3 camRight = cameraTransform.right;
 
-                camForward.Normalize();
-                camRight.Normalize();
+            camForward.y = 0;
+            camRight.y = 0;
+            camForward.Normalize();
+            camRight.Normalize();
 
-                _moveDirection = camForward * inputDir.z + camRight * inputDir.x;
+            _moveDirection = camForward * inputDir.z + camRight * inputDir.x;
 
-                bool isAiming = cameraController != null && cameraController.IsAiming();
-
-                if (isAiming)
-                {
-                    _currSpeed = aimWalkingSpeed;
-                }
-
-                HandleSprint();
+            // Set speed
+            if (cameraController != null && cameraController.IsAiming())
+            {
+                _currSpeed = aimWalkingSpeed;
             }
             else
             {
-                _moveDirection = Vector3.zero;
-                _currSpeed = 0f;
+                _currSpeed = walkingSpeed;
             }
+            HandleSprint();
 
+            // Calculate target velocity
             Vector3 targetVelocity = _moveDirection * _currSpeed;
 
-            // movement handling
+            // Apply movement
             if (_isGrounded)
             {
-                if (_onSlope && _moveDirection.sqrMagnitude > 0.01f)
+                // Handle slope
+                if (_onSlope)
                 {
                     targetVelocity = Vector3.ProjectOnPlane(targetVelocity, _slopeHit.normal);
                     _rb.AddForce(Vector3.down * slopeForce, ForceMode.Force);
                 }
 
-                float accel = _moveDirection.magnitude > 0.1f ? acceleration : deceleration;
+                // Smooth velocity change
+                Vector3 currentHorizVelocity = new Vector3(_rb.linearVelocity.x, 0, _rb.linearVelocity.z);
+                Vector3 newHorizVelocity = Vector3.Lerp(currentHorizVelocity, targetVelocity,
+                    acceleration * Time.fixedDeltaTime);
 
-                _currentVelocity = Vector3.Lerp(new Vector3(_rb.linearVelocity.x, 0, _rb.linearVelocity.z),
-                    targetVelocity, accel * Time.deltaTime);
-
-                _rb.linearVelocity = new Vector3(_currentVelocity.x, _rb.linearVelocity.y, _currentVelocity.z);
-                Vector3 velocity = _rb.linearVelocity;
-                velocity.x *= 1f - drag * Time.fixedDeltaTime;
-                velocity.z *= 1f - drag * Time.fixedDeltaTime;
-                _rb.linearVelocity = velocity;
+                _rb.linearVelocity = new Vector3(newHorizVelocity.x, _rb.linearVelocity.y, newHorizVelocity.z);
             }
             else
             {
+                // Air movement (optional - reduced control)
+                Vector3 currentHorizVelocity = new Vector3(_rb.linearVelocity.x, 0, _rb.linearVelocity.z);
+                Vector3 newHorizVelocity = Vector3.Lerp(currentHorizVelocity, targetVelocity,
+                    acceleration * 0.5f * Time.fixedDeltaTime);
+
+                _rb.linearVelocity = new Vector3(newHorizVelocity.x, _rb.linearVelocity.y, newHorizVelocity.z);
             }
         }
 

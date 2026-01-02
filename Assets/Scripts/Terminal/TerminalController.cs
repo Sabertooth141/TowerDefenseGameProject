@@ -30,16 +30,15 @@ namespace Terminal
         [SerializeField] private TMP_InputField cmdInput;
         [SerializeField] private TextMeshProUGUI outputText;
         [SerializeField] private ScrollRect scrollRect;
-        [SerializeField] private RectTransform contentRect;
         [SerializeField] private Camera terminalCamera;
         [SerializeField] private TaskManager taskManager;
         [SerializeField] private FileUploadController uploadController;
+        [SerializeField] private UIController uiController;
 
         [Header("Terminal settings")]
         public int maxOutputLInes = 50;
-
         private PlayerController _playerController;
-        private UIController _uiController;
+        
         private bool _terminalOpen;
         private bool _terminalFocused;
         private bool _isExecutingCmd;
@@ -81,8 +80,6 @@ namespace Terminal
                 _playerController = FindAnyObjectByType<PlayerController>();
             }
 
-            _uiController = _playerController.gameObject.GetComponent<UIController>();
-
             if (terminalScreen == null)
             {
                 Debug.LogError("TerminalController: terminal panel is null");
@@ -119,7 +116,6 @@ namespace Terminal
             }
             else
             {
-                contentRect = scrollRect.content;
             }
         }
 
@@ -166,7 +162,7 @@ namespace Terminal
         {
             _terminalFocused = true;
 
-            _uiController.HideHUDPanel();
+            uiController.HideHUDPanel();
             terminalCamera.enabled = true;
 
             UnlockInput();
@@ -184,7 +180,7 @@ namespace Terminal
             _terminalFocused = false;
             _terminalOpen = false;
 
-            _uiController.ShowHUDPanel();
+            uiController.ShowHUDPanel();
             // terminalCamera.enabled = false;
 
             LockInput();
