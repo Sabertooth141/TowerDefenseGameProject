@@ -9,12 +9,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4303683805005746454}
-  - component: {fileID: 8125520235227498769}
   - component: {fileID: 1601946392613196465}
-  - component: {fileID: 6732633242670856126}
+  - component: {fileID: 4053922914893964216}
   m_Layer: 2
-  m_Name: TerminalObject
-  m_TagString: Terminal
+  m_Name: ReactorTerminal
+  m_TagString: ReactorTerminal
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -30,7 +29,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -12.03, y: 0.96, z: 0.37418}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6126132721815626841}
   - {fileID: 2941453738488881879}
@@ -38,27 +37,6 @@ Transform:
   - {fileID: 7190942529419016477}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8125520235227498769
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 793660230241458650}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 95a0059b07d25f54f89ad8f262f4ea9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  terminalScreen: {fileID: 2862110501495250407}
-  cmdInput: {fileID: 5875055865672905763}
-  outputText: {fileID: 6012890245621206251}
-  scrollRect: {fileID: 4020343662566953423}
-  terminalCamera: {fileID: 5182086292890655285}
-  taskManager: {fileID: 0}
-  uploadController: {fileID: 6732633242670856126}
-  uiController: {fileID: 0}
-  maxOutputLInes: 50
 --- !u!135 &1601946392613196465
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -80,7 +58,7 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 2
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &6732633242670856126
+--- !u!114 &4053922914893964216
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -89,11 +67,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 793660230241458650}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67385888331d46d4d8e2e0a60c2d6998, type: 3}
+  m_Script: {fileID: 11500000, guid: 183b257603971c34381ff844ed513862, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  terminalController: {fileID: 8125520235227498769}
+  terminalScreen: {fileID: 2862110501495250407}
+  cmdInput: {fileID: 5875055865672905763}
+  outputText: {fileID: 6012890245621206251}
+  scrollRect: {fileID: 4020343662566953423}
+  terminalCamera: {fileID: 5182086292890655285}
   taskManager: {fileID: 0}
+  uploadController: {fileID: 0}
+  uiController: {fileID: 0}
+  maxOutputLInes: 50
+  generatorStartupTime: 10
   progressBarLen: 40
 --- !u!1 &951036683301517042
 GameObject:
@@ -131,7 +117,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.0029907227}
+  m_AnchoredPosition: {x: 0, y: 0.0032348633}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &2141779439304113838

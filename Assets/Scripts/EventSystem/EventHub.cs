@@ -12,6 +12,8 @@ namespace EventSystem
         // game events
         public static event Action OnGameStart;
         public static event Action OnGameEnd;
+        public static event Action OnGeneratorStart;
+        
         // enemy goal hurt
         public static event Action<float, float> OnGoalHurt;
         
@@ -88,6 +90,11 @@ namespace EventSystem
         public static void TriggerOnUploadFileComplete()
         {
             OnUploadFileComplete?.Invoke();
+        }
+        
+        public static void TriggerOnGeneratorStart()
+        {
+            OnGeneratorStart?.Invoke();
         }
     }
 }

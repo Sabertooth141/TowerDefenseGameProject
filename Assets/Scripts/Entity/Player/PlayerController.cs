@@ -37,6 +37,9 @@ namespace Entity.Player
         public float maxSlopeAngle = 45.0f;
         public float slopeForce = 8.0f;
         public float drag = 5.0f;
+        
+        [Header("ADS Rotation Handling")]
+        public LayerMask adsRotationMask;
 
         private Vector2 _input;
         private RaycastHit _slopeHit;
@@ -156,7 +159,7 @@ namespace Entity.Player
             if (isAiming)
             {
                 RaycastHit cameraAimingPoint;
-                Physics.Raycast(cameraController.GetRay(), out cameraAimingPoint);
+                Physics.Raycast(cameraController.GetRay(), out cameraAimingPoint, adsRotationMask);
 
                 Vector3 lookDirection = (cameraAimingPoint.point - transform.position).normalized;
                 // lookDirection.y = 0;
@@ -344,7 +347,7 @@ namespace Entity.Player
 
         private void OnTriggerStay(Collider other)
         {
-            if (other.CompareTag("Terminal"))
+            if (other.CompareTag("Terminal") || other.CompareTag("ReactorTerminal"))
             {
                 uiController.EnableInteraction("[F] Open Terminal");
                 if (_inputReader.InteractPressed)

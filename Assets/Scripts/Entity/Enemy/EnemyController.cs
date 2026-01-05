@@ -18,6 +18,7 @@ namespace Entity.Enemy
 
         private bool _isAttacking;
         private bool _isActive;
+        private bool _isHacking;
         
         private EnemyNavAgentController _navMeshAgent;
         private float _attackTimer;
@@ -101,13 +102,7 @@ namespace Entity.Enemy
         {
             if (other.gameObject.CompareTag("EnemyGoal"))
             {
-                _attackTarget = other.gameObject.GetComponent<Entity>();
-                _isAttacking = true;
-
-                if (_attackTarget == null)
-                {
-                    Debug.LogError("Attack Target is null");
-                }
+                // TODO: implement
             }
         }
 

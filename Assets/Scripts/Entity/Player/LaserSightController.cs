@@ -63,7 +63,7 @@ namespace Entity.Player
         {
             if (playerCam == null)
             {
-                Debug.LogError("No player camera assigned to LaserSightController");
+                // Debug.LogError("No player camera assigned to LaserSightController");
             }
             
             // laser1 setup

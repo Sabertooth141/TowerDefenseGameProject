@@ -25,18 +25,25 @@ namespace Entity.Enemy
         {
             EventHub.OnGameStart += OnGameStart;
             EventHub.OnGameEnd += OnGameEnd;
+            EventHub.OnGeneratorStart += OnGeneratorStart;
         }
 
         private void OnDestroy()
         {
             EventHub.OnGameStart -= OnGameStart;
             EventHub.OnGameEnd -= OnGameEnd;
+            EventHub.OnGeneratorStart -= OnGeneratorStart;
         }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
             InitSpawnPoints();
+        }
+
+        private void OnGeneratorStart()
+        {
+            StartCoroutine(SpawnLoop());
         }
 
         private void OnGameEnd()
@@ -47,7 +54,6 @@ namespace Entity.Enemy
         private void OnGameStart()
         {
             _gameRunning = true;
-            StartCoroutine(SpawnLoop());
         }
 
         private void InitSpawnPoints()

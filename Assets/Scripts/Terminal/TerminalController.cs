@@ -26,18 +26,18 @@ namespace Terminal
     public class TerminalController : MonoBehaviour
     {
         [Header("Reference")]
-        [SerializeField] private GameObject terminalScreen;
-        [SerializeField] private TMP_InputField cmdInput;
-        [SerializeField] private TextMeshProUGUI outputText;
-        [SerializeField] private ScrollRect scrollRect;
-        [SerializeField] private Camera terminalCamera;
-        [SerializeField] private TaskManager taskManager;
-        [SerializeField] private FileUploadController uploadController;
-        [SerializeField] private UIController uiController;
+        [SerializeField] protected GameObject terminalScreen;
+        [SerializeField] protected TMP_InputField cmdInput;
+        [SerializeField] protected TextMeshProUGUI outputText;
+        [SerializeField] protected ScrollRect scrollRect;
+        [SerializeField] protected Camera terminalCamera;
+        [SerializeField] protected TaskManager taskManager;
+        [SerializeField] protected FileUploadController uploadController;
+        [SerializeField] protected UIController uiController;
 
         [Header("Terminal settings")]
         public int maxOutputLInes = 50;
-        private PlayerController _playerController;
+        protected PlayerController playerController;
         
         private bool _terminalOpen;
         private bool _terminalFocused;
@@ -47,12 +47,13 @@ namespace Terminal
         private Dictionary<string, int> _storedDir = new();
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
+        protected virtual void Start()
         {
             InitCommands();
 
             EventHub.OnExecuteCommand += HandleOnExecuteCmd;
             EventHub.OnCommandComplete += HandleOnCmdComplete;
+            EventHub.OnGeneratorStart += HandlePowerUp;
             
             cmdInput.onSubmit.AddListener(OnCommandSubmit);
 
@@ -61,6 +62,15 @@ namespace Terminal
             AddOutput("---------------------------------------------");
 
             cmdInput.text = "";
+        }
+        protected virtual void HandlePowerUp()
+        {
+            terminalScreen.SetActive(true);
+        }
+
+        protected virtual void HandlePowerDown()
+        {
+            terminalScreen.SetActive(false);
         }
 
         private void HandleOnCmdComplete()
@@ -73,11 +83,11 @@ namespace Terminal
             _isExecutingCmd = true;
         }
 
-        private void Awake()
+        protected virtual void Awake()
         {
-            if (_playerController == null)
+            if (playerController == null)
             {
-                _playerController = FindAnyObjectByType<PlayerController>();
+                playerController = FindAnyObjectByType<PlayerController>();
             }
 
             if (terminalScreen == null)
@@ -114,9 +124,8 @@ namespace Terminal
             {
                 Debug.LogError("TerminalController: scrollRect is null");
             }
-            else
-            {
-            }
+            
+            terminalScreen.SetActive(false);
         }
 
         // Update is called once per frame
@@ -283,7 +292,7 @@ namespace Terminal
             cmdInput.ActivateInputField();
         }
 
-        private void RegisterCmd(string cmdName, string description, Action<string[]> callback)
+        protected void RegisterCmd(string cmdName, string description, Action<string[]> callback)
         {
             if (String.IsNullOrWhiteSpace(cmdName) || String.IsNullOrWhiteSpace(description))
             {
@@ -303,7 +312,7 @@ namespace Terminal
             };
         }
 
-        private void InitCommands()
+        protected virtual void InitCommands()
         {
             // HELP
             RegisterCmd("HELP", "Lists all available commands", (args) =>

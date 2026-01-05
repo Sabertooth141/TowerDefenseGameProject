@@ -21,6 +21,7 @@ TagManager:
   - TerminalManager
   - TaskManager
   - TerminalPanel
+  - ReactorTerminal
   layers:
   - Default
   - TransparentFX
