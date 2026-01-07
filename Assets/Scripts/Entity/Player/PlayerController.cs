@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Entity.Turret;
 using EventSystem;
 using Terminal;
@@ -17,6 +19,7 @@ namespace Entity.Player
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private CameraController cameraController;
         [SerializeField] private UIController uiController;
+        [SerializeField] private Transform spawnPoint;
 
         [Header("Movement Controls")]
         public float walkingSpeed = 10.0f;
@@ -144,9 +147,13 @@ namespace Entity.Player
             {
                 Debug.LogError("PlayerController: CapsuleCollider not found");
             }
+
+            if (spawnPoint == null)
+            {
+                Debug.LogError("PlayerController: SpawnPoint not found");
+            }
         }
-
-
+        
         private void HandleRotation()
         {
             if (!_canLook)
@@ -373,6 +380,34 @@ namespace Entity.Player
             }
         }
 
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.CompareTag("ResetCollider"))
+            {
+                StartCoroutine(MoveToSpawnPoint());
+            }
+        }
+
+        private IEnumerator MoveToSpawnPoint()
+        {
+            Transform currTransform = transform;
+            
+            DisableMovement();
+            _rb.isKinematic = true;
+
+            while (Vector3.Distance(currTransform.position, spawnPoint.position) > 0.01f)
+            {
+                currTransform.position = Vector3.MoveTowards(currTransform.position, spawnPoint.position, walkingSpeed * Time.deltaTime);
+                
+                yield return null;
+            }
+            
+            currTransform.position = spawnPoint.position;
+            
+            EnableMovement();
+            _rb.isKinematic = false;
+        }
+
         private void OnTriggerExit(Collider other)
         {
             uiController.DisableInteraction();
@@ -390,6 +425,13 @@ namespace Entity.Player
             _canMove = true;
             _canLook = true;
             cameraController.EnableCameraMovement();
+        }
+
+        public override void TakeDamage(float damage)
+        {
+            base.TakeDamage(damage);
+            
+            Debug.Log("TAKE DAMAGE");
         }
     }
 }

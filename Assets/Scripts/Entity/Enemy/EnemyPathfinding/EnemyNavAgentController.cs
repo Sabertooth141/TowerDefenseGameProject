@@ -8,8 +8,12 @@ namespace Entity.Enemy.EnemyPathfinding
     {
         [SerializeField] private NavMeshAgent agent;
         [SerializeField] private Transform target;
+        [SerializeField] private Transform player;
 
         private bool _isPathFinding;
+        private GeneratorController _generatorController;
+        private Vector3 _lastDestination;
+        private bool _hasDestination;
 
         private void Awake()
         {
@@ -17,14 +21,50 @@ namespace Entity.Enemy.EnemyPathfinding
             {
                 target = GameObject.FindGameObjectWithTag("EnemyGoal").transform;
             }
+
+            if (player == null)
+            {
+                player = GameObject.FindGameObjectWithTag("Player").transform;
+            }
+            
+            if (agent == null)
+                agent = GetComponent<NavMeshAgent>();
+
+            if (agent == null)
+            {
+                Debug.LogError("EnemyNavAgentController: NavMeshAgent missing");
+            }
+            
+            _generatorController = target.GetComponent<GeneratorController>();
+
+            agent.speed = 7f;
+            agent.acceleration = 30f;
+            agent.angularSpeed = 1000f;
+            agent.autoBraking = true;
         }
 
         // Update is called once per frame
         void Update()
         {
-            if (target != null && _isPathFinding)
+            if (!_isPathFinding)
             {
-                agent.SetDestination(target.position);
+                return;
+            }
+            
+            if (player == null)
+            {
+                return;
+            }
+
+            Vector3 dest = _generatorController.IsGeneratorRunning
+                ? target.position
+                : player.position;
+
+            if (!_hasDestination || (_lastDestination - dest).sqrMagnitude > 0.01f)
+            {
+                agent.SetDestination(dest);
+                _lastDestination = dest;
+                _hasDestination = true;
             }
         }
 
@@ -33,6 +73,7 @@ namespace Entity.Enemy.EnemyPathfinding
             if (!_isPathFinding)
             {
                 _isPathFinding = true;
+                agent.isStopped = false;
             }
         }
 

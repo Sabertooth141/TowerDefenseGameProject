@@ -1,16 +1,18 @@
 using System.Collections;
 using Entity.Player;
 using EventSystem;
+using Misc;
 using Terminal;
 using UnityEngine;
 
 public class ReactorTermialController : TerminalController
 {
     [SerializeField] private float generatorStartupTime = 10;
+    [SerializeField] private float generatorCloseTime = 20;
     [SerializeField] private int progressBarLen = 40;
-    
+
     private float _progress;
-    
+
     protected override void Awake()
     {
         if (playerController == null)
@@ -44,6 +46,20 @@ public class ReactorTermialController : TerminalController
         }
     }
 
+    protected override void Start()
+    {
+        base.Start();
+
+        EventHub.OnTryTurnOffGenerator += HandleTurnOffReactor;
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+
+        EventHub.OnTryTurnOffGenerator -= HandleTurnOffReactor;
+    }
+
     protected override void InitCommands()
     {
         base.InitCommands();
@@ -61,10 +77,8 @@ public class ReactorTermialController : TerminalController
         AddOutput("Initializing Generator Starting Sequence...");
         AddOutput("---------------------------------------------");
         AddOutput(""); // placeholder for progress bar
-        AddOutput(""); // placeholder for stats
         int progressBarIndex = GetCurrentLineIndex() - 1;
-        int uploadStatsIndex = progressBarIndex + 1;
-        
+
         while (_progress < generatorStartupTime)
         {
             float increment = Random.Range(0.1f, 1f);
@@ -77,14 +91,53 @@ public class ReactorTermialController : TerminalController
             string bar = "[" + new string('█', filled) + new string('░', progressBarLen - filled) + "]";
 
             int percentDisplay = Mathf.RoundToInt(percentage * 100);
-        
+
             UpdateOutputLine(progressBarIndex, $"{bar} {percentDisplay}%");
 
             yield return new WaitForSeconds(1);
         }
-        
+
         EventHub.TriggerOnGeneratorStart();
+        SceneManager.Instance.isGeneratorOn = true;
         AddOutput("GENERATOR STARTED");
+        EventHub.TriggerOnCommandCompleted();
+    }
+
+    private void HandleTurnOffReactor()
+    {
+        AddOutput("==== EXTERNAL OVERRIDE ====");
+        AddOutput("==== GENERATOR TURN OFF ====");
+        StartCoroutine(TurnOffReactor());
+    }
+
+    private IEnumerator TurnOffReactor()
+    {
+        AddOutput("GENERATOR STOPPING FROM EXTERNAL OVERRIDE");
+        AddOutput("REMOVE EXTERNAL SOURCE TO STOP");
+        AddOutput("---------------------------------------------");
+        AddOutput(""); // placeholder for progress bar
+        int progressBarIndex = GetCurrentLineIndex() - 1;
+
+        while (_progress < generatorCloseTime)
+        {
+            _progress += Time.deltaTime;
+            _progress = Mathf.Min(_progress, generatorCloseTime);
+
+            // Calculate percentage for progress bar
+            float percentage = _progress / generatorCloseTime;
+            int filled = Mathf.RoundToInt(progressBarLen * percentage);
+            string bar = "[" + new string('█', filled) + new string('░', progressBarLen - filled) + "]";
+
+            int percentDisplay = Mathf.RoundToInt(percentage * 100);
+
+            UpdateOutputLine(progressBarIndex, $"{bar} {percentDisplay}%");
+
+            yield return null;
+        }
+        
+        EventHub.TriggerOnGeneratorTurnOff();
+        SceneManager.Instance.isGeneratorOn = false;
+        AddOutput("GENERATOR SHUTDOWN");
         EventHub.TriggerOnCommandCompleted();
     }
 

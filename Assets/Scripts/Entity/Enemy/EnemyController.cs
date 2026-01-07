@@ -1,6 +1,8 @@
 ﻿using System;
 using Entity.Enemy.EnemyPathfinding;
+using Entity.Player;
 using EventSystem;
+using Misc;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.PlayerLoop;
@@ -18,18 +20,19 @@ namespace Entity.Enemy
 
         private bool _isAttacking;
         private bool _isActive;
-        private bool _isHacking;
+        private static bool _isHacking;
         
         private EnemyNavAgentController _navMeshAgent;
         private float _attackTimer;
         private Entity _attackTarget;
+        private bool _inAttackCooldown;
 
         protected override void Start()
         {
             base.Start();
 
             EnemyManager.Instance.RegisterEnemy(gameObject);
-            _navMeshAgent.SetStoppingDistance(sphereCollider.radius);
+            _navMeshAgent.SetStoppingDistance(1);
         }
 
         private void Awake()
@@ -38,6 +41,7 @@ namespace Entity.Enemy
             _navMeshAgent.StartPathFinding();
             
             _isActive = true;
+            _isAttacking = false;
             
             if (_navMeshAgent == null)
             {
@@ -77,11 +81,19 @@ namespace Entity.Enemy
             {
                 return;
             }
+
+            if (!_inAttackCooldown)
+            {
+                _navMeshAgent.StopPathFinding();
+                _attackTarget.TakeDamage(damage);
+                _inAttackCooldown = true;
+            }
             
             if (_attackTimer > attackCooldown)
             {
                 _attackTimer = 0;
-                _attackTarget.TakeDamage(damage);
+                _navMeshAgent.StartPathFinding();
+                _inAttackCooldown = false;
             }
 
             _attackTimer += Time.deltaTime;
@@ -102,16 +114,29 @@ namespace Entity.Enemy
         {
             if (other.gameObject.CompareTag("EnemyGoal"))
             {
-                // TODO: implement
+                if (!_isHacking && other.gameObject.GetComponent<GeneratorController>().IsGeneratorRunning)
+                {
+                    _isHacking = true;
+                    EventHub.TriggerOnTryTurnOffGenerator();
+                }
+            }
+
+            if (other.gameObject.CompareTag("Player") && !SceneManager.Instance.isGeneratorOn)
+            {
+                _attackTarget = other.gameObject.GetComponentInParent<PlayerController>();
+                _attackTimer = 0;
+                _inAttackCooldown = false;
+                _isAttacking = true;
             }
         }
 
-        private void OnTriggerExit(Collider other)
+        private void OnTriggerExit(Collider other)   
         {
-            if ( _attackTarget != null && other.gameObject == _attackTarget.gameObject)
+            if ( _attackTarget != null)
             {
                 _attackTarget = null;
                 _isAttacking = false;
+                _navMeshAgent.StartPathFinding();
             }
         }
     }

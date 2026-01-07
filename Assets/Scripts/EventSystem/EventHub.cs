@@ -12,7 +12,12 @@ namespace EventSystem
         // game events
         public static event Action OnGameStart;
         public static event Action OnGameEnd;
+        
+        //generator events
         public static event Action OnGeneratorStart;
+        public static event Action OnTryTurnOffGenerator;
+        public static event Action OnStopTurnOffGenerator;
+        public static event Action OnGeneratorTurnOff;
         
         // enemy goal hurt
         public static event Action<float, float> OnGoalHurt;
@@ -95,6 +100,21 @@ namespace EventSystem
         public static void TriggerOnGeneratorStart()
         {
             OnGeneratorStart?.Invoke();
+        }
+        
+        public static void TriggerOnTryTurnOffGenerator()
+        {
+            OnTryTurnOffGenerator?.Invoke();
+        }
+
+        public static void TriggerOnStopTurnOffGenerator()
+        {
+            OnStopTurnOffGenerator?.Invoke();
+        }
+
+        public static void TriggerOnGeneratorTurnOff()
+        {
+            OnGeneratorTurnOff?.Invoke();
         }
     }
 }

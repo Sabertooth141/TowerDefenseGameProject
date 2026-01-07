@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using EventSystem;
 using UnityEngine;
@@ -17,6 +18,13 @@ namespace Misc
         void Start()
         {
             EventHub.OnGeneratorStart += TurnOnLight;
+            EventHub.OnGeneratorTurnOff += TurnOffLight;
+        }
+
+        private void OnDestroy()
+        {
+            EventHub.OnGeneratorStart -= TurnOnLight;
+            EventHub.OnGeneratorTurnOff -= TurnOffLight;
         }
 
         private void Awake()

@@ -17,7 +17,7 @@ namespace Terminal
 
         [Header("Upload settings")]
         [SerializeField] private int progressBarLen = 40;
-
+        
         private readonly WaitForSeconds _wait200ms = new WaitForSeconds(0.2f);
         private readonly WaitForSeconds _wait50ms = new WaitForSeconds(0.05f);
 

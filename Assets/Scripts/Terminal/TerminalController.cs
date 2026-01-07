@@ -38,13 +38,15 @@ namespace Terminal
         [Header("Terminal settings")]
         public int maxOutputLInes = 50;
         protected PlayerController playerController;
-        
+
         private bool _terminalOpen;
         private bool _terminalFocused;
         private bool _isExecutingCmd;
         private List<String> _outputLines = new();
         private Dictionary<String, TerminalCommand> _commands = new();
         private Dictionary<string, int> _storedDir = new();
+
+        private readonly WaitForSeconds _wait10ms = new(0.01f);
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         protected virtual void Start()
@@ -54,7 +56,7 @@ namespace Terminal
             EventHub.OnExecuteCommand += HandleOnExecuteCmd;
             EventHub.OnCommandComplete += HandleOnCmdComplete;
             EventHub.OnGeneratorStart += HandlePowerUp;
-            
+
             cmdInput.onSubmit.AddListener(OnCommandSubmit);
 
             AddOutput("TERMINAL V2.4.1 INITIALIZED");
@@ -63,6 +65,14 @@ namespace Terminal
 
             cmdInput.text = "";
         }
+
+        protected virtual void OnDestroy()
+        {
+            EventHub.OnExecuteCommand -= HandleOnExecuteCmd;
+            EventHub.OnCommandComplete -= HandleOnCmdComplete;
+            EventHub.OnGeneratorStart -= HandlePowerUp;
+        }
+
         protected virtual void HandlePowerUp()
         {
             terminalScreen.SetActive(true);
@@ -114,7 +124,7 @@ namespace Terminal
             {
                 Debug.LogError("TerminalController: task manager is null");
             }
-            
+
             if (uploadController == null)
             {
                 Debug.LogError("TerminalController: upload controller is null");
@@ -124,7 +134,7 @@ namespace Terminal
             {
                 Debug.LogError("TerminalController: scrollRect is null");
             }
-            
+
             terminalScreen.SetActive(false);
         }
 
@@ -135,7 +145,7 @@ namespace Terminal
             {
                 return;
             }
-            
+
             if (_terminalFocused)
             {
                 if (Keyboard.current.leftCtrlKey.wasPressedThisFrame)
@@ -162,9 +172,9 @@ namespace Terminal
             {
                 return;
             }
-            
+
             _terminalOpen = false;
-            UnfocusTerminal(); 
+            UnfocusTerminal();
         }
 
         private void FocusTerminal()
@@ -175,7 +185,7 @@ namespace Terminal
             terminalCamera.enabled = true;
 
             UnlockInput();
-            
+
             int len = cmdInput.text.Length;
             cmdInput.caretPosition = len;
             cmdInput.selectionAnchorPosition = len;
@@ -183,7 +193,7 @@ namespace Terminal
 
             EventHub.TriggerOnTerminalStatusChanged(true, terminalScreen.transform);
         }
-        
+
         public void UnfocusTerminal()
         {
             _terminalFocused = false;
@@ -218,7 +228,7 @@ namespace Terminal
             {
                 _outputLines.RemoveAt(0);
             }
-            
+
             _outputLines.Add(output);
             outputText.text = string.Join("\n", _outputLines);
 
@@ -237,7 +247,7 @@ namespace Terminal
 
         public void UpdateOutputLine(int lineIndex, string message)
         {
-            _outputLines[lineIndex] =  message;
+            _outputLines[lineIndex] = message;
             outputText.text = string.Join("\n", _outputLines);
         }
 
@@ -256,7 +266,7 @@ namespace Terminal
                 Debug.Log("no");
                 return;
             }
-            
+
             Debug.Log("yes");
 
             EventHub.TriggerOnExecuteCommand();
@@ -287,7 +297,7 @@ namespace Terminal
                 AddOutput($"ERROR: Command execution failed - {e.Message}");
                 EventHub.TriggerOnCommandCompleted();
             }
-            
+
             cmdInput.text = "";
             cmdInput.ActivateInputField();
         }
@@ -315,38 +325,44 @@ namespace Terminal
         protected virtual void InitCommands()
         {
             // HELP
-            RegisterCmd("HELP", "Lists all available commands", (args) =>
-            {
-                AddOutput("==== AVAILABLE COMMANDS ====");
-                foreach (var cmd in _commands)
+            RegisterCmd("HELP",
+                "Lists all available commands",
+                (args) =>
                 {
-                    AddOutput($"{cmd.Key}: {cmd.Value.description}");
-                }
-                EventHub.TriggerOnCommandCompleted();
-            });
+                    AddOutput("==== AVAILABLE COMMANDS ====");
+                    foreach (var cmd in _commands)
+                    {
+                        AddOutput($"{cmd.Key}: {cmd.Value.description}");
+                    }
+                    EventHub.TriggerOnCommandCompleted();
+                });
 
             // CLEAR
-            RegisterCmd("CLR", "Clears terminal output", (args) =>
-            {
-                ClearOutput();
-                AddOutput("TERMINAL V2.4.1 INITIALIZED");
-                AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
-                AddOutput("---------------------------------------------");
-                EventHub.TriggerOnCommandCompleted();
-            });
+            RegisterCmd("CLR",
+                "Clears terminal output",
+                (args) =>
+                {
+                    ClearOutput();
+                    AddOutput("TERMINAL V2.4.1 INITIALIZED");
+                    AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
+                    AddOutput("---------------------------------------------");
+                    EventHub.TriggerOnCommandCompleted();
+                });
 
             // DIR
-            RegisterCmd("DIR", "Shows all directories", (args) =>
-            {
-                AddOutput("==== DIRECTORIES ====");
-                foreach (var dir in _storedDir)
+            RegisterCmd("DIR",
+                "Shows all directories",
+                (args) =>
                 {
-                    AddOutput($"[{dir.Key},  {dir.Value}KB]");
-                }
+                    AddOutput("==== DIRECTORIES ====");
+                    foreach (var dir in _storedDir)
+                    {
+                        AddOutput($"[{dir.Key},  {dir.Value}KB]");
+                    }
 
-                AddOutput("---------------------------------------------");
-                EventHub.TriggerOnCommandCompleted();
-            });
+                    AddOutput("---------------------------------------------");
+                    EventHub.TriggerOnCommandCompleted();
+                });
 
             // UPLOAD
             RegisterCmd("UPLOAD", "Available Syntax: 'UPLOAD <filename>'", HandleUpload);
@@ -376,7 +392,7 @@ namespace Terminal
                 EventHub.TriggerOnCommandCompleted();
                 yield break;
             }
-            
+
             uploadController.StartVerification(args);
         }
 
