@@ -1,7 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using EventSystem;
+using GameEvents;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -24,24 +25,20 @@ namespace Misc
 
         private Dictionary<string, int> _generatedFiles = new();
         private Dictionary<string, int> _taskFiles = new();
-
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
-        {
-            InitUploadTaskList();
-        }
-
+        private bool _initialized;
+        
         private void Awake()
         {
             if (Instance == null)
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
             }
             else
             {
                 Destroy(gameObject);
             }
+            
+            EventHub.OnTerminalsRegistered += InitUploadTaskList;
 
             if (potentialSuffix.Count <= 0)
             {
@@ -59,8 +56,19 @@ namespace Misc
             }
         }
 
+        private void OnDestroy()
+        {
+            EventHub.OnTerminalsRegistered -= InitUploadTaskList;
+        }
+
         private void InitUploadTaskList()
         {
+            if (_initialized)
+            {
+                return;
+            }
+            
+            _initialized = true;
             GenerateFileNames();
         }
 
@@ -192,7 +200,7 @@ namespace Misc
             {
                 if (_taskFiles.Count <= 0)
                 {
-                    Debug.Log("ALL TASKS COMPLETED");
+                    UnityEngine.SceneManagement.SceneManager.LoadScene("VictoryScene");
                 }
                 EventHub.TriggerOnUploadFileComplete();
                 return true;    

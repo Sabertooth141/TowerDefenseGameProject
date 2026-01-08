@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Entity.Player;
 using Entity.Turret;
-using EventSystem;
+using GameEvents;
 using UnityEngine;
 using UnityEngine.Serialization;
 

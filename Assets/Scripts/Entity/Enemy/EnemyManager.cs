@@ -17,7 +17,6 @@ namespace Entity.Enemy
             if (Instance == null)
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
             }
             else
             {

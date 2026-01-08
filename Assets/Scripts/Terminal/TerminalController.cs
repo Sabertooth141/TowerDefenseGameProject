@@ -2,11 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Entity.Player;
-using EventSystem;
+using GameEvents;
 using Misc;
 using TMPro;
 using UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
@@ -45,6 +46,7 @@ namespace Terminal
         private List<String> _outputLines = new();
         private Dictionary<String, TerminalCommand> _commands = new();
         private Dictionary<string, int> _storedDir = new();
+        private Coroutine _runningCoroutine;
 
         private readonly WaitForSeconds _wait10ms = new(0.01f);
 
@@ -56,6 +58,7 @@ namespace Terminal
             EventHub.OnExecuteCommand += HandleOnExecuteCmd;
             EventHub.OnCommandComplete += HandleOnCmdComplete;
             EventHub.OnGeneratorStart += HandlePowerUp;
+            EventHub.OnGeneratorTurnOff += HandlePowerDown;
 
             cmdInput.onSubmit.AddListener(OnCommandSubmit);
 
@@ -71,6 +74,7 @@ namespace Terminal
             EventHub.OnExecuteCommand -= HandleOnExecuteCmd;
             EventHub.OnCommandComplete -= HandleOnCmdComplete;
             EventHub.OnGeneratorStart -= HandlePowerUp;
+            EventHub.OnGeneratorTurnOff -= HandlePowerDown;
         }
 
         protected virtual void HandlePowerUp()
@@ -80,6 +84,12 @@ namespace Terminal
 
         protected virtual void HandlePowerDown()
         {
+            if (_runningCoroutine != null)
+            {
+                StopCoroutine(_runningCoroutine);
+                _runningCoroutine = null;
+            }
+            CloseTerminal();
             terminalScreen.SetActive(false);
         }
 
@@ -148,7 +158,7 @@ namespace Terminal
 
             if (_terminalFocused)
             {
-                if (Keyboard.current.leftCtrlKey.wasPressedThisFrame)
+                if (Keyboard.current.leftCtrlKey.wasPressedThisFrame || Keyboard.current.escapeKey.wasPressedThisFrame)
                 {
                     UnfocusTerminal();
                 }
@@ -263,11 +273,8 @@ namespace Terminal
             {
                 cmdInput.text = "";
                 cmdInput.ActivateInputField();
-                Debug.Log("no");
                 return;
             }
-
-            Debug.Log("yes");
 
             EventHub.TriggerOnExecuteCommand();
             ProcessCmd(command);
@@ -342,10 +349,7 @@ namespace Terminal
                 "Clears terminal output",
                 (args) =>
                 {
-                    ClearOutput();
-                    AddOutput("TERMINAL V2.4.1 INITIALIZED");
-                    AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
-                    AddOutput("---------------------------------------------");
+                    ClearScreen();
                     EventHub.TriggerOnCommandCompleted();
                 });
 
@@ -368,9 +372,18 @@ namespace Terminal
             RegisterCmd("UPLOAD", "Available Syntax: 'UPLOAD <filename>'", HandleUpload);
         }
 
+        public void ClearScreen()
+        {
+            _outputLines.Clear();
+            outputText.text = "";
+            AddOutput("TERMINAL V2.4.1 INITIALIZED");
+            AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
+            AddOutput("---------------------------------------------");
+        }
+
         private void HandleUpload(string[] args)
         {
-            StartCoroutine(UploadFiles(args));
+            _runningCoroutine = StartCoroutine(UploadFiles(args));
         }
 
         private IEnumerator UploadFiles(string[] args)
@@ -394,12 +407,7 @@ namespace Terminal
             }
 
             uploadController.StartVerification(args);
-        }
-
-        private void ClearOutput()
-        {
-            _outputLines.Clear();
-            outputText.text = "";
+            _runningCoroutine = null;
         }
 
         public void AddDir(string dir, int fileSize)
@@ -409,6 +417,65 @@ namespace Terminal
 
         private void OnInputChanged(string command)
         {
+        }
+        
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus)
+                return;
+
+            StartCoroutine(DelayedForceFocus());
+        }
+
+        private IEnumerator DelayedForceFocus()
+        {
+            yield return null;
+            yield return null; 
+            ForceFocusInput();
+        }
+
+        private void ForceFocusInput()
+        {
+            if (!cmdInput || !cmdInput.interactable)
+                return;
+
+
+            cmdInput.DeactivateInputField();
+
+
+            EventSystem.current.SetSelectedGameObject(null);
+
+
+            StartCoroutine(RebindInputField());
+        }
+
+        private IEnumerator RebindInputField()
+        {
+            yield return null; 
+            yield return null;
+
+
+            EventSystem.current.SetSelectedGameObject(cmdInput.gameObject);
+
+
+            cmdInput.ActivateInputField();
+
+ 
+            cmdInput.Select();
+            cmdInput.MoveTextEnd(false);
+        }
+
+        private void OnEnable()
+        {
+            StartCoroutine(DelayedForceFocus());
+        }
+        
+        private void OnApplicationPause(bool paused)
+        {
+            if (!paused)
+            {
+                StartCoroutine(DelayedForceFocus());
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using EventSystem;
+using GameEvents;
 using Misc;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -17,6 +17,8 @@ namespace Terminal
 
         [Header("Upload settings")]
         [SerializeField] private int progressBarLen = 40;
+
+        private Coroutine _runningCoroutine;
         
         private readonly WaitForSeconds _wait200ms = new WaitForSeconds(0.2f);
         private readonly WaitForSeconds _wait50ms = new WaitForSeconds(0.05f);
@@ -34,9 +36,31 @@ namespace Terminal
             }
         }
 
+        private void Start()
+        {
+            EventHub.OnGeneratorTurnOff += HandleTurnOff;
+        }
+
+        private void OnDestroy()
+        {
+            EventHub.OnGeneratorTurnOff -= HandleTurnOff;
+        }
+
+        private void HandleTurnOff()
+        {
+            if (_runningCoroutine == null)
+            {
+                return;
+            }
+            
+            StopCoroutine(_runningCoroutine);
+            _runningCoroutine = null;
+            terminalController.ClearScreen();
+        }
+
         public void StartVerification(string[] args)
         {
-            StartCoroutine(Verification(args));
+            _runningCoroutine = StartCoroutine(Verification(args));
         }
 
         private void AddOutput(string output)
@@ -108,13 +132,15 @@ namespace Terminal
             if (!verifyFlag)
             {
                 AddOutput("CLIENT: Request INVALID, terminating connection...");
+                EventHub.TriggerOnCommandCompleted();
+                _runningCoroutine = null;
             }
             else
             {
                 AddOutput("CLIENT: Request OK, initiating upload...");
                 AddOutput("---------------------------------------------");
                 KeyValuePair<string, int> targetFile = TaskManager.Instance.GetFileByName(filename);
-                StartCoroutine(Upload(filename, targetFile.Value));
+                _runningCoroutine = StartCoroutine(Upload(filename, targetFile.Value));
             }
         }
 

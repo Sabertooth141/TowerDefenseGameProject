@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Entity.Turret;
-using EventSystem;
+using GameEvents;
 using Misc;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace UI
 {
@@ -12,11 +14,14 @@ namespace UI
     {
         [Header("References")]
         [SerializeField] private GameObject hudPanel;
-        [SerializeField] private TextMeshProUGUI enemyGoalHpText;
-        [SerializeField] private TextMeshProUGUI enemyGoalHpIndic;
         [SerializeField] private TextMeshProUGUI interactionText;
         [SerializeField] private TextMeshProUGUI availableTurretsText;
-        [SerializeField] private TextMeshProUGUI currentTasksText;
+        [SerializeField] private TextMeshProUGUI currentTasksText; 
+        [SerializeField] private TextMeshProUGUI generatorMsgText;
+        [SerializeField] private GameObject enemiesAlertText;
+        [SerializeField] private String generatorUnderHackMsg;
+        [SerializeField] private String generatorHackedMsg;
+        [SerializeField] private TextMeshProUGUI playerHealthText;
 
         private void Start()
         {
@@ -26,28 +31,37 @@ namespace UI
         private void Awake()
         {
             // due to start order has to stay in awake
-            EventHub.OnGoalHurt += HandleGoalHurt;
             EventHub.OnTurretUpdate += HandleTurretUpdate;
             EventHub.OnFilesGenerated += HandleTaskDisplay;
             EventHub.OnUploadFileComplete += HandleTaskDisplay;
+            EventHub.OnPlayerControl += HandleHUDStart;
+            EventHub.OnGeneratorStart += HandleGeneratorStart;
+            EventHub.OnTryTurnOffGenerator += HandleTryTurnOffGenerator;
+            EventHub.OnGeneratorTurnOff += HandleGeneratorTurnOff;
+            EventHub.OnStopTurnOffGenerator += HandleGeneratorTurnOffStopped;
+            EventHub.OnPlayerHurt += HandlePlayerHurt;
+            
             CheckNull();
         }
-
+        
+        private void OnDestroy()
+        {
+            EventHub.OnTurretUpdate -= HandleTurretUpdate;
+            EventHub.OnFilesGenerated -= HandleTaskDisplay;
+            EventHub.OnUploadFileComplete -= HandleTaskDisplay;
+            EventHub.OnPlayerControl -= HandleHUDStart;
+            EventHub.OnGeneratorStart -= HandleGeneratorStart;
+            EventHub.OnTryTurnOffGenerator -= HandleTryTurnOffGenerator;
+            EventHub.OnGeneratorTurnOff -= HandleGeneratorTurnOff;
+            EventHub.OnStopTurnOffGenerator -= HandleGeneratorTurnOffStopped;
+            EventHub.OnPlayerHurt -= HandlePlayerHurt;
+        }
+        
         private void CheckNull()
         {
             if (hudPanel == null)
             {
                 Debug.LogError("PlayerController: GoalHpText not found");
-            }
-
-            if (enemyGoalHpText == null)
-            {
-                Debug.LogError("PlayerController: GoalHpText not found");
-            }
-
-            if (enemyGoalHpIndic == null)
-            {
-                Debug.LogError("PlayerController: GoalHpIndic not found");
             }
 
             if (interactionText == null)
@@ -68,12 +82,11 @@ namespace UI
 
         private void InitUIComponents()
         {
-            if (enemyGoalHpIndic != null)
-            {
-                enemyGoalHpIndic.gameObject.SetActive(false);   
-            }
-            enemyGoalHpText.text = "";
             interactionText.text = "";
+            generatorMsgText.text = "";
+            enemiesAlertText.SetActive(false);
+            
+            hudPanel.SetActive(false);
         }
 
         private void HandleTaskDisplay()
@@ -84,12 +97,6 @@ namespace UI
             {
                 currentTasksText.text +=  $"{task.Key}\n";
             }
-        }
-
-        private void HandleGoalHurt(float goalCurrHp, float goalMaxHp)
-        {
-            enemyGoalHpIndic.gameObject.SetActive(true);
-            enemyGoalHpText.text = $"{goalCurrHp}/{goalMaxHp}";
         }
 
         public void EnableInteraction(string interactMsg)
@@ -106,12 +113,6 @@ namespace UI
         {
             availableTurretsText.text = $"{availableTurret}";
         }
-
-        private void OnDestroy()
-        {
-            EventHub.OnGoalHurt -= HandleGoalHurt;
-            EventHub.OnTurretUpdate -= HandleTurretUpdate;
-        }
         
         public void HideHUDPanel()
         {
@@ -121,6 +122,38 @@ namespace UI
         public void ShowHUDPanel()
         {
             hudPanel.SetActive(true);
+        }
+
+        private void HandleHUDStart()
+        {
+            ShowHUDPanel();
+        }
+
+        private void HandleTryTurnOffGenerator()
+        {
+            generatorMsgText.text = generatorUnderHackMsg;
+        }
+
+        private void HandleGeneratorTurnOff()
+        {
+            generatorMsgText.text = generatorHackedMsg;
+            enemiesAlertText.SetActive(false);
+        }
+
+        private void HandleGeneratorTurnOffStopped()
+        {
+            generatorMsgText.text = "";
+        }
+
+        private void HandleGeneratorStart()
+        {
+            generatorMsgText.text = "";
+            enemiesAlertText.SetActive(true);
+        }
+
+        private void HandlePlayerHurt(float playerHp)
+        {
+            playerHealthText.text = $"{playerHp}%";
         }
     }
 }

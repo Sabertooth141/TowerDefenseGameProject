@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace EventSystem
+namespace GameEvents
 {
     public class EventHub
     {
@@ -12,15 +12,14 @@ namespace EventSystem
         // game events
         public static event Action OnGameStart;
         public static event Action OnGameEnd;
+        public static event Action OnStartScene;
+        public static event Action OnPlayerControl;
         
         //generator events
         public static event Action OnGeneratorStart;
         public static event Action OnTryTurnOffGenerator;
         public static event Action OnStopTurnOffGenerator;
         public static event Action OnGeneratorTurnOff;
-        
-        // enemy goal hurt
-        public static event Action<float, float> OnGoalHurt;
         
         // building system events
         public static event Action OnBuildingPressed;
@@ -35,6 +34,10 @@ namespace EventSystem
         
         // internal logic events
         public static event Action OnFilesGenerated;
+        public static event Action OnTerminalsRegistered;
+        
+        // player events
+        public static event Action<float> OnPlayerHurt;
         
         // event trigger
         public static void TriggerEnemyDied(Entity.Entity enemy)
@@ -60,11 +63,6 @@ namespace EventSystem
         public static void TriggerBuildingConfirmed()
         {
             OnBuildingConfirmed?.Invoke();
-        }
-        
-        public static void TriggerOnGoalHurt(float curHp, float maxHp)
-        {
-            OnGoalHurt?.Invoke(curHp, maxHp);
         }
 
         public static void TriggerOnTurretUpdate(int availableTurret)
@@ -115,6 +113,26 @@ namespace EventSystem
         public static void TriggerOnGeneratorTurnOff()
         {
             OnGeneratorTurnOff?.Invoke();
+        }
+
+        public static void TriggerOnStartScene()
+        {
+            OnStartScene?.Invoke();
+        }
+
+        public static void TriggerOnPlayerControl()
+        {
+            OnPlayerControl?.Invoke();
+        }
+
+        public static void TriggerOnPlayerHurt(float playerHp)
+        {
+            OnPlayerHurt?.Invoke(playerHp);
+        }
+
+        public static void TriggerOnTerminalRegistered()
+        {
+            OnTerminalsRegistered?.Invoke();
         }
     }
 }

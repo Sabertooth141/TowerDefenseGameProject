@@ -1,5 +1,5 @@
 using System;
-using EventSystem;
+using GameEvents;
 using UnityEngine;
 
 namespace Entity.Player

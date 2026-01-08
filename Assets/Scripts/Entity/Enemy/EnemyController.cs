@@ -1,7 +1,7 @@
 ﻿using System;
 using Entity.Enemy.EnemyPathfinding;
 using Entity.Player;
-using EventSystem;
+using GameEvents;
 using Misc;
 using UnityEngine;
 using UnityEngine.AI;
@@ -20,12 +20,12 @@ namespace Entity.Enemy
 
         private bool _isAttacking;
         private bool _isActive;
-        private static bool _isHacking;
         
         private EnemyNavAgentController _navMeshAgent;
         private float _attackTimer;
         private Entity _attackTarget;
         private bool _inAttackCooldown;
+        private GeneratorController _generator;
 
         protected override void Start()
         {
@@ -108,19 +108,16 @@ namespace Entity.Enemy
         private void OnDestroy()
         {
             EnemyManager.Instance?.UnregisterEnemy(gameObject);
+
+            if (_generator != null)
+            {
+                _generator.UnregisterHacker(gameObject);    
+                _generator = null;
+            }
         }
 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.gameObject.CompareTag("EnemyGoal"))
-            {
-                if (!_isHacking && other.gameObject.GetComponent<GeneratorController>().IsGeneratorRunning)
-                {
-                    _isHacking = true;
-                    EventHub.TriggerOnTryTurnOffGenerator();
-                }
-            }
-
             if (other.gameObject.CompareTag("Player") && !SceneManager.Instance.isGeneratorOn)
             {
                 _attackTarget = other.gameObject.GetComponentInParent<PlayerController>();
@@ -128,15 +125,30 @@ namespace Entity.Enemy
                 _inAttackCooldown = false;
                 _isAttacking = true;
             }
+            
+            if (other.gameObject.CompareTag("EnemyGoal"))
+            {
+                _generator = other.gameObject.GetComponent<GeneratorController>();
+                if (_generator.IsGeneratorRunning)
+                {
+                    _generator.RegisterHacker(gameObject);
+                }
+            }
         }
 
         private void OnTriggerExit(Collider other)   
         {
-            if ( _attackTarget != null)
+            if (other.gameObject.CompareTag("Player") && _attackTarget != null)
             {
                 _attackTarget = null;
                 _isAttacking = false;
                 _navMeshAgent.StartPathFinding();
+            }
+
+            if (other.gameObject.CompareTag("EnemyGoal") && _generator != null)
+            {
+                _generator.UnregisterHacker(gameObject);
+                _generator = null;
             }
         }
     }

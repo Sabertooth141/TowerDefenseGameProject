@@ -1,4 +1,3 @@
-using EventSystem;
 using UnityEngine;
 
 namespace Entity.Enemy

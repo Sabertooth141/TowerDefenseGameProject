@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
-using EventSystem;
+using System.Collections.Generic;
+using GameEvents;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -14,6 +15,8 @@ public class GeneratorController : MonoBehaviour
     public bool IsGeneratorRunning { get; private set; }
 
     private Vector3 _platingClosedPosition;
+    private readonly HashSet<GameObject> _hackers = new();
+    private Coroutine _generatorPlatingCoroutine;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -54,16 +57,25 @@ public class GeneratorController : MonoBehaviour
 
     private void HandleGeneratorStart()
     {
-        StartCoroutine(OpenGeneratorPlating());
-
+        if (_generatorPlatingCoroutine != null)
+        {
+            StopCoroutine(_generatorPlatingCoroutine);
+        }
+        
+        _generatorPlatingCoroutine = StartCoroutine(OpenGeneratorPlating());
         generatorLighting.enabled = true;
     }
 
     private void HandleGeneratorTurnOff()
     {
-        StartCoroutine(CloseGeneratorPlating());
+        if (_generatorPlatingCoroutine != null)
+        {
+            StopCoroutine(_generatorPlatingCoroutine);
+        }
         
+        _generatorPlatingCoroutine = StartCoroutine(CloseGeneratorPlating());
         generatorLighting.enabled = false;
+        _hackers.Clear();
     }
     
     private IEnumerator OpenGeneratorPlating()
@@ -98,5 +110,25 @@ public class GeneratorController : MonoBehaviour
         
         IsGeneratorRunning = false;
         platingTransform.position = _platingClosedPosition;
+    }
+
+    public void RegisterHacker(GameObject hacker)
+    {
+        if (_hackers.Count == 0)
+        {
+            EventHub.TriggerOnTryTurnOffGenerator();
+        }
+        
+        _hackers.Add(hacker);
+    }
+
+    public void UnregisterHacker(GameObject hacker)
+    {
+        _hackers.Remove(hacker);
+
+        if (_hackers.Count == 0)
+        {
+            EventHub.TriggerOnStopTurnOffGenerator();
+        }
     }
 }

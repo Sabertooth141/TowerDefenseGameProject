@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using EventSystem;
+using GameEvents;
 using Misc;
 using Terminal;
 using UnityEngine;
@@ -20,7 +20,6 @@ namespace Terminal
             if (Instance == null)
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
             }
             else
             {
@@ -35,6 +34,11 @@ namespace Terminal
             EventHub.OnFilesGenerated += InitDirInTerminals;
         }
 
+        private void OnDestroy()
+        {
+            EventHub.OnFilesGenerated -= InitDirInTerminals;
+        }
+
         // register and init terminals
         private void RegisterTerminals()
         {
@@ -44,6 +48,8 @@ namespace Terminal
             {
                 _activeTerminals.Add(terminal);
             }
+            
+            EventHub.TriggerOnTerminalRegistered();
         }
 
         private void InitDirInTerminals()

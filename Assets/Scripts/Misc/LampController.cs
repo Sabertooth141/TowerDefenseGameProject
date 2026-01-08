@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using EventSystem;
+using GameEvents;
 using UnityEngine;
 
 namespace Misc

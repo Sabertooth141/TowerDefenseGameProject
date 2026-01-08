@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Entity.Turret.TurretStateMachine;
-using EventSystem;
+using GameEvents;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;

@@ -2,7 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Entity.Turret;
-using EventSystem;
+using GameEvents;
+using Misc;
 using Terminal;
 using TMPro;
 using UI;
@@ -40,7 +41,7 @@ namespace Entity.Player
         public float maxSlopeAngle = 45.0f;
         public float slopeForce = 8.0f;
         public float drag = 5.0f;
-        
+
         [Header("ADS Rotation Handling")]
         public LayerMask adsRotationMask;
 
@@ -74,6 +75,9 @@ namespace Entity.Player
         {
             base.Start();
 
+            EventHub.OnStartScene += DisableMovement;
+            EventHub.OnPlayerControl += EnableMovement;
+
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
@@ -81,6 +85,14 @@ namespace Entity.Player
 
             _canMove = true;
             _canLook = true;
+
+            EventHub.TriggerOnPlayerHurt((Mathf.Floor((currHp / maxHp) * 10f) / 10f) * 100f);
+        }
+
+        private void OnDestroy()
+        {
+            EventHub.OnStartScene -= DisableMovement;
+            EventHub.OnPlayerControl -= EnableMovement;
         }
 
         private void Awake()
@@ -113,7 +125,7 @@ namespace Entity.Player
             GroundCheck();
             HandleGravity();
             HandleMovement();
-            CheckSlope();
+            // CheckSlope();
 
             if (_inputReader.JumpPressed)
             {
@@ -153,7 +165,7 @@ namespace Entity.Player
                 Debug.LogError("PlayerController: SpawnPoint not found");
             }
         }
-        
+
         private void HandleRotation()
         {
             if (!_canLook)
@@ -175,7 +187,8 @@ namespace Entity.Player
                 {
                     Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
 
-                    playerModelTransform.rotation = Quaternion.Lerp(playerModelTransform.rotation, targetRotation,
+                    playerModelTransform.rotation = Quaternion.Lerp(playerModelTransform.rotation,
+                        targetRotation,
                         rotationSpeed * Time.deltaTime);
                 }
             }
@@ -183,15 +196,18 @@ namespace Entity.Player
             {
                 Quaternion targetRotation = Quaternion.LookRotation(_moveDirection);
 
-                playerModelTransform.rotation = Quaternion.Lerp(playerModelTransform.rotation, targetRotation,
+                playerModelTransform.rotation = Quaternion.Lerp(playerModelTransform.rotation,
+                    targetRotation,
                     rotationSpeed * Time.deltaTime);
             }
         }
 
         private void CheckSlope()
         {
-            if (Physics.Raycast(transform.position, Vector3.down, out _slopeHit,
-                    _capsuleCollider.height * 0.5f + SlopeCheckOffset))
+            if (Physics.Raycast(transform.position,
+                Vector3.down,
+                out _slopeHit,
+                _capsuleCollider.height * 0.5f + SlopeCheckOffset))
             {
                 float slopeAngle = Vector3.Angle(Vector3.up, _slopeHit.normal);
                 _onSlope = slopeAngle > 0.1f && slopeAngle <= maxSlopeAngle;
@@ -245,16 +261,17 @@ namespace Entity.Player
         {
             Vector3 rayStart = transform.position;
             float rayLength = groundCheckDist;
-    
+
             // Simple raycast from center
             _isGrounded = Physics.Raycast(rayStart, Vector3.down, rayLength, groundMask);
-    
+
             // OR use sphere cast for better detection
             // _isGrounded = Physics.SphereCast(rayStart, _capsuleCollider.radius * 0.9f, 
             //                                   Vector3.down, out _, rayLength, groundMask);
-    
+
             // Debug visualization
-            Debug.DrawRay(rayStart, Vector3.down * rayLength, 
+            Debug.DrawRay(rayStart,
+                Vector3.down * rayLength,
                 _isGrounded ? Color.green : Color.red);
         }
 
@@ -314,16 +331,17 @@ namespace Entity.Player
             // Apply movement
             if (_isGrounded)
             {
-                // Handle slope
-                if (_onSlope)
-                {
-                    targetVelocity = Vector3.ProjectOnPlane(targetVelocity, _slopeHit.normal);
-                    _rb.AddForce(Vector3.down * slopeForce, ForceMode.Force);
-                }
+                // // Handle slope
+                // if (_onSlope)
+                // {
+                //     targetVelocity = Vector3.ProjectOnPlane(targetVelocity, _slopeHit.normal);
+                //     _rb.AddForce(Vector3.down * slopeForce, ForceMode.Force);
+                // }
 
                 // Smooth velocity change
                 Vector3 currentHorizVelocity = new Vector3(_rb.linearVelocity.x, 0, _rb.linearVelocity.z);
-                Vector3 newHorizVelocity = Vector3.Lerp(currentHorizVelocity, targetVelocity,
+                Vector3 newHorizVelocity = Vector3.Lerp(currentHorizVelocity,
+                    targetVelocity,
                     acceleration * Time.fixedDeltaTime);
 
                 _rb.linearVelocity = new Vector3(newHorizVelocity.x, _rb.linearVelocity.y, newHorizVelocity.z);
@@ -332,7 +350,8 @@ namespace Entity.Player
             {
                 // Air movement (optional - reduced control)
                 Vector3 currentHorizVelocity = new Vector3(_rb.linearVelocity.x, 0, _rb.linearVelocity.z);
-                Vector3 newHorizVelocity = Vector3.Lerp(currentHorizVelocity, targetVelocity,
+                Vector3 newHorizVelocity = Vector3.Lerp(currentHorizVelocity,
+                    targetVelocity,
                     acceleration * 0.5f * Time.fixedDeltaTime);
 
                 _rb.linearVelocity = new Vector3(newHorizVelocity.x, _rb.linearVelocity.y, newHorizVelocity.z);
@@ -391,19 +410,19 @@ namespace Entity.Player
         private IEnumerator MoveToSpawnPoint()
         {
             Transform currTransform = transform;
-            
+
             DisableMovement();
             _rb.isKinematic = true;
 
             while (Vector3.Distance(currTransform.position, spawnPoint.position) > 0.01f)
             {
                 currTransform.position = Vector3.MoveTowards(currTransform.position, spawnPoint.position, walkingSpeed * Time.deltaTime);
-                
+
                 yield return null;
             }
-            
+
             currTransform.position = spawnPoint.position;
-            
+
             EnableMovement();
             _rb.isKinematic = false;
         }
@@ -430,8 +449,15 @@ namespace Entity.Player
         public override void TakeDamage(float damage)
         {
             base.TakeDamage(damage);
-            
-            Debug.Log("TAKE DAMAGE");
+
+            EventHub.TriggerOnPlayerHurt((Mathf.Floor((currHp / maxHp) * 10f) / 10f) * 100f);
+        }
+
+        protected override void Die()
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("EndScene");
+
+            base.Die();
         }
     }
 }

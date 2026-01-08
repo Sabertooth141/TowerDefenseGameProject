@@ -1,5 +1,5 @@
 using System;
-using EventSystem;
+using GameEvents;
 using UnityEngine;
 
 namespace Misc
@@ -14,7 +14,6 @@ namespace Misc
             if (Instance == null)
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
             }
             else
             {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using EventSystem;
+using GameEvents;
 using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
@@ -74,7 +74,10 @@ namespace Entity.Enemy
 
                 if (currentEnemies < maxEnemies)
                 {
-                    SpawnEnemy();
+                    for (int i = 0; i < maxEnemies; i++)
+                    {
+                        SpawnEnemy();
+                    }
                 }
 
                 yield return new WaitForSeconds(checkInterval);
@@ -96,7 +99,8 @@ namespace Entity.Enemy
             }
             else
             {
-                Instantiate(enemyPrefabs[Random.Range(0, enemyPrefabs.Length)], spawnPoint.position,
+                Instantiate(enemyPrefabs[Random.Range(0, enemyPrefabs.Length)],
+                    spawnPoint.position,
                     spawnPoint.rotation);
             }
         }

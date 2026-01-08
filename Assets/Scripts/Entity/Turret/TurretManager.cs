@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using EventSystem;
+using GameEvents;
 using UnityEngine;
 
 namespace Entity.Turret
@@ -18,7 +18,6 @@ namespace Entity.Turret
             if (Instance == null)
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
             }
             else
             {
