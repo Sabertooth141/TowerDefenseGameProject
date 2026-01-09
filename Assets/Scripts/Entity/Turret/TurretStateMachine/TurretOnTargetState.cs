@@ -62,12 +62,6 @@ namespace Entity.Turret.TurretStateMachine
             {
                 _controller.stateMachine.ChangeState(new TurretTrackingState(_controller));
             }
-            
-            Debug.DrawLine(
-                _controller.turretFiringPoint.position, 
-                targetPosition, 
-                Color.green
-            );
         }
     }
 }

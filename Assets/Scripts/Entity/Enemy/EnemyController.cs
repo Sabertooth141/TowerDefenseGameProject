@@ -20,7 +20,7 @@ namespace Entity.Enemy
 
         private bool _isAttacking;
         private bool _isActive;
-        
+
         private EnemyNavAgentController _navMeshAgent;
         private float _attackTimer;
         private Entity _attackTarget;
@@ -39,10 +39,10 @@ namespace Entity.Enemy
         {
             _navMeshAgent = GetComponent<EnemyNavAgentController>();
             _navMeshAgent.StartPathFinding();
-            
+
             _isActive = true;
             _isAttacking = false;
-            
+
             if (_navMeshAgent == null)
             {
                 Debug.LogError("EnemyController: NavMeshAgent is null");
@@ -61,7 +61,7 @@ namespace Entity.Enemy
             {
                 return;
             }
-            
+
             base.Update();
 
             if (_isAttacking)
@@ -88,7 +88,7 @@ namespace Entity.Enemy
                 _attackTarget.TakeDamage(damage);
                 _inAttackCooldown = true;
             }
-            
+
             if (_attackTimer > attackCooldown)
             {
                 _attackTimer = 0;
@@ -111,12 +111,12 @@ namespace Entity.Enemy
 
             if (_generator != null)
             {
-                _generator.UnregisterHacker(gameObject);    
+                _generator.UnregisterHacker(gameObject);
                 _generator = null;
             }
         }
 
-        private void OnTriggerEnter(Collider other)
+        public void HandleHackingTriggerEnter(Collider other)
         {
             if (other.gameObject.CompareTag("Player") && !SceneManager.Instance.isGeneratorOn)
             {
@@ -125,7 +125,7 @@ namespace Entity.Enemy
                 _inAttackCooldown = false;
                 _isAttacking = true;
             }
-            
+
             if (other.gameObject.CompareTag("EnemyGoal"))
             {
                 _generator = other.gameObject.GetComponent<GeneratorController>();
@@ -136,7 +136,7 @@ namespace Entity.Enemy
             }
         }
 
-        private void OnTriggerExit(Collider other)   
+        public void HandleHackingTriggerExit(Collider other)
         {
             if (other.gameObject.CompareTag("Player") && _attackTarget != null)
             {

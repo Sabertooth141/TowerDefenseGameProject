@@ -56,7 +56,7 @@ namespace UI
         {
             cmdInput.interactable = false;
 
-            AddOutput("=== OPERATION ICARUS BRIEF ===");
+            AddOutput("=== OPERATION ICARUS ===");
             yield return RandomWait(0.2f, 0.4f);
             EventHub.TriggerOnStartScene();
 

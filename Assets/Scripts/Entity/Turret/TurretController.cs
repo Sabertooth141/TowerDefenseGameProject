@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Entity.Player;
 using Entity.Turret.TurretStateMachine;
 using GameEvents;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
@@ -25,6 +27,9 @@ namespace Entity.Turret
         public Transform turretFiringPoint;
         public SphereCollider detectionCollider;
         public bool HasTargets => targets.Count > 0;
+        [SerializeField] private TurretLaserSightController laserSightController;
+        [SerializeField] private FireVFXController fireVFXController;
+        public LayerMask hitMask;
 
         private float _resetTimer;
         private List<GameObject> _targetsToCheck = new();
@@ -41,7 +46,7 @@ namespace Entity.Turret
             stateMachine = new TurretStateMachine.TurretStateMachine();
             stateMachine.ChangeState(new TurretIdleState(this));
 
-            _range = detectionCollider.radius;
+            _range = detectionCollider.radius * gameObject.transform.localScale.x;
             TurretManager.Instance.RegisterTurret(gameObject);
         }
 
@@ -61,6 +66,8 @@ namespace Entity.Turret
             {
                 Debug.LogError("DetectionCollider field is missing");
             }
+            
+            laserSightController.SetLasersActive(true);
         }
 
         private void OnEnable()
@@ -103,9 +110,12 @@ namespace Entity.Turret
         public void Fire()
         {
             Ray bulletRay = new Ray(turretFiringPoint.position, turretFiringPoint.forward);
-
-            if (Physics.Raycast(bulletRay, out RaycastHit hit, _range))
+            
+            if (Physics.Raycast(bulletRay, out RaycastHit hit, _range, hitMask))
             {
+                fireVFXController.PlayShotEffects(turretFiringPoint.forward, hit.point);
+                fireVFXController.PlayHitEffect(hit);
+                
                 if (hit.transform.CompareTag("Enemy"))
                 {
                     hit.transform.gameObject.GetComponent<Entity>().TakeDamage(damage);
@@ -118,16 +128,19 @@ namespace Entity.Turret
             int maskToIgnore = ~losMask;
             Vector3 direction = (target.position - turretFiringPoint.position).normalized;
 
-            if (Physics.Raycast(turretFiringPoint.position, direction, out RaycastHit hit, Mathf.Infinity,
-                    maskToIgnore))
+            if (Physics.Raycast(turretFiringPoint.position,
+                direction,
+                out RaycastHit hit,
+                Mathf.Infinity,
+                maskToIgnore))
             {
                 if (hit.transform == target)
                 {
-                    Debug.DrawRay(turretFiringPoint.position, direction * 100f, Color.azure);
+                    // Debug.DrawRay(turretFiringPoint.position, direction * 100f, Color.azure);
                     return true;
                 }
 
-                Debug.DrawRay(turretFiringPoint.position, direction * 100f, Color.red);
+                // Debug.DrawRay(turretFiringPoint.position, direction * 100f, Color.red);
                 return false;
 
                 // return hit.transform == target;

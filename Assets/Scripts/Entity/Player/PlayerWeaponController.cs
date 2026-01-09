@@ -1,6 +1,10 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Entity.Player;
 using UnityEngine;
+using UnityEngine.Serialization;
+using Random = System.Random;
 
 namespace Entity.Player
 {
@@ -8,10 +12,14 @@ namespace Entity.Player
     {
         [Header("References")]
         public PlayerController playerController;
+        public Transform playerModelTransform;
         public CameraController cameraController;
-        [SerializeField] private PlayerInputReader inputReader;
         public GameObject hitIndicate;
-
+        public LayerMask hitLayer;
+        [SerializeField] private PlayerInputReader inputReader;
+        [SerializeField] private RecoilController recoilController;
+        [SerializeField] private FireVFXController fireVFXController;
+        
         [Header("Weapon Settings")]
         public float fireRate = 0.1f;
         public float damage = 20f;
@@ -35,19 +43,23 @@ namespace Entity.Player
                 Shoot();
                 _nextFireTime = Time.time + fireRate;
             }
+            recoilController.ResetRecoil();
         }
 
         private void Shoot()
         {
-            if (Physics.Raycast(cameraController.GetRay(), out RaycastHit hit, range))
+            recoilController.ApplyRecoil();
+            fireVFXController.PlayShotEffects(cameraController.GetRay().direction);
+            if (Physics.Raycast(cameraController.GetRay(), out RaycastHit hit, range, hitLayer))
             {
+                fireVFXController.PlayHitEffect(hit);
                 Instantiate(hitIndicate, hit.point, hit.transform.rotation);
+                
                 if (hit.transform.CompareTag("Enemy"))
                 {
                     hit.transform.gameObject.GetComponent<Entity>().TakeDamage(damage);
                 }
             }
         }
-
     }
 }

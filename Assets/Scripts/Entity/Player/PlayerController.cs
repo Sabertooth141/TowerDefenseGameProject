@@ -21,6 +21,7 @@ namespace Entity.Player
         [SerializeField] private CameraController cameraController;
         [SerializeField] private UIController uiController;
         [SerializeField] private Transform spawnPoint;
+        [SerializeField] private LaserSightController laserSightController;
 
         [Header("Movement Controls")]
         public float walkingSpeed = 10.0f;
@@ -29,6 +30,7 @@ namespace Entity.Player
         public float acceleration = 5.0f;
         public float deceleration = 10.0f;
         public float rotationSpeed = 1.0f;
+        public float aimRotationSpeed = 20.0f;
 
         [Header("Gravity / Jump")]
         public float gravity = -9.8f;
@@ -178,22 +180,24 @@ namespace Entity.Player
             if (isAiming)
             {
                 RaycastHit cameraAimingPoint;
-                Physics.Raycast(cameraController.GetRay(), out cameraAimingPoint, adsRotationMask);
-
-                Vector3 lookDirection = (cameraAimingPoint.point - transform.position).normalized;
-                // lookDirection.y = 0;
+                Vector3 lookDirection = Physics.Raycast(cameraController.GetRay(), out cameraAimingPoint, adsRotationMask)
+                    ? (cameraAimingPoint.point - transform.position).normalized
+                    : cameraController.transform.forward;
+                laserSightController.SetLasersActive(true);
 
                 if (lookDirection != Vector3.zero)
                 {
                     Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+                    _moveDirection = lookDirection;
 
                     playerModelTransform.rotation = Quaternion.Lerp(playerModelTransform.rotation,
                         targetRotation,
-                        rotationSpeed * Time.deltaTime);
+                        aimRotationSpeed * Time.deltaTime);
                 }
             }
             else if (_moveDirection != Vector3.zero)
             {
+                laserSightController.SetLasersActive(false);
                 Quaternion targetRotation = Quaternion.LookRotation(_moveDirection);
 
                 playerModelTransform.rotation = Quaternion.Lerp(playerModelTransform.rotation,

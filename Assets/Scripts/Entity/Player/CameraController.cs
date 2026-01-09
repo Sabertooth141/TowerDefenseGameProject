@@ -32,6 +32,11 @@ namespace Entity.Player
         public float adsFOV = 50f;
         public float fovTransitionSpeed = 10.0f;
 
+        [Header("Recoil Settings")]
+        public Vector2 recoilOffset;
+        public Vector2 recoilVel;
+        [SerializeField] private float recoilReturnSpeed = 2f;
+
         private Camera _cam;
         private float _rotationX = 0.0f;
         private float _rotationY = 0.0f;
@@ -163,8 +168,19 @@ namespace Entity.Player
 
             _rotationX += mouseX;
             _rotationY -= mouseY;
+
+            _rotationX += recoilOffset.x * Time.deltaTime;
+            _rotationY -= recoilOffset.y * Time.deltaTime;
+            
             _rotationY = Mathf.Clamp(_rotationY, minPitch, maxPitch);
 
+            recoilOffset = Vector2.SmoothDamp(
+                recoilOffset,
+                Vector2.zero,
+                ref recoilVel,
+                1f / recoilReturnSpeed
+            );
+            
             _isAiming = inputReader.AimPressed;
         }
 
