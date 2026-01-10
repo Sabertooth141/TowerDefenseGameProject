@@ -10,6 +10,7 @@ using UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
 
 namespace Entity.Player
 {
@@ -55,6 +56,7 @@ namespace Entity.Player
         private bool _onSlope;
         private bool _canMove;
         private bool _canLook;
+        private bool _canDamage = true;
 
         private float _currSpeed;
         private Vector3 _moveDirection;
@@ -79,6 +81,7 @@ namespace Entity.Player
 
             EventHub.OnStartScene += DisableMovement;
             EventHub.OnPlayerControl += EnableMovement;
+            EventHub.OnVictory += HandleVictory;
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -95,6 +98,7 @@ namespace Entity.Player
         {
             EventHub.OnStartScene -= DisableMovement;
             EventHub.OnPlayerControl -= EnableMovement;
+            EventHub.OnVictory -= HandleVictory;
         }
 
         private void Awake()
@@ -166,6 +170,11 @@ namespace Entity.Player
             {
                 Debug.LogError("PlayerController: SpawnPoint not found");
             }
+        }
+
+        private void HandleVictory()
+        {
+            _canDamage = false;
         }
 
         private void HandleRotation()
@@ -379,14 +388,22 @@ namespace Entity.Player
         {
             if (other.CompareTag("Terminal") || other.CompareTag("ReactorTerminal"))
             {
+                TerminalController terminalController = other.GetComponent<TerminalController>();
+                if (terminalController == null)
+                {
+                    return;
+                }
+
+                if (!terminalController.IsInteractable())
+                {
+                    return;
+                }
+
                 uiController.EnableInteraction("[F] Open Terminal");
                 if (_inputReader.InteractPressed)
                 {
                     uiController.DisableInteraction();
-                    if (other.GetComponent<TerminalController>() != null)
-                    {
-                        other.GetComponent<TerminalController>().StartTerminal();
-                    }
+                    terminalController.StartTerminal();
 
                     DisableMovement();
                 }
@@ -452,13 +469,19 @@ namespace Entity.Player
 
         public override void TakeDamage(float damage)
         {
-            base.TakeDamage(damage);
+            if (!_canDamage)
+            {
+                return;
+            }
+
+            base.TakeDamage(Random.Range(damage - 5, damage + 5));
 
             EventHub.TriggerOnPlayerHurt((Mathf.Floor((currHp / maxHp) * 10f) / 10f) * 100f);
         }
 
         protected override void Die()
         {
+            EventHub.TriggerOnMusicAllStop();
             UnityEngine.SceneManagement.SceneManager.LoadScene("EndScene");
 
             base.Die();

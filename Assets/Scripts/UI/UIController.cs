@@ -16,7 +16,7 @@ namespace UI
         [SerializeField] private GameObject hudPanel;
         [SerializeField] private TextMeshProUGUI interactionText;
         [SerializeField] private TextMeshProUGUI availableTurretsText;
-        [SerializeField] private TextMeshProUGUI currentTasksText; 
+        [SerializeField] private TextMeshProUGUI currentTasksText;
         [SerializeField] private TextMeshProUGUI generatorMsgText;
         [SerializeField] private GameObject enemiesAlertText;
         [SerializeField] private String generatorUnderHackMsg;
@@ -40,10 +40,11 @@ namespace UI
             EventHub.OnGeneratorTurnOff += HandleGeneratorTurnOff;
             EventHub.OnStopTurnOffGenerator += HandleGeneratorTurnOffStopped;
             EventHub.OnPlayerHurt += HandlePlayerHurt;
-            
+            EventHub.OnVictory += HandleVictory;
+
             CheckNull();
         }
-        
+
         private void OnDestroy()
         {
             EventHub.OnTurretUpdate -= HandleTurretUpdate;
@@ -55,8 +56,9 @@ namespace UI
             EventHub.OnGeneratorTurnOff -= HandleGeneratorTurnOff;
             EventHub.OnStopTurnOffGenerator -= HandleGeneratorTurnOffStopped;
             EventHub.OnPlayerHurt -= HandlePlayerHurt;
+            EventHub.OnVictory -= HandleVictory;
         }
-        
+
         private void CheckNull()
         {
             if (hudPanel == null)
@@ -73,7 +75,7 @@ namespace UI
             {
                 Debug.LogError("PlayerController: AvailableTurretsText not found");
             }
-            
+
             if (currentTasksText == null)
             {
                 Debug.LogError("PlayerController: CurrentTasksText not found");
@@ -85,7 +87,7 @@ namespace UI
             interactionText.text = "";
             generatorMsgText.text = "";
             enemiesAlertText.SetActive(false);
-            
+
             hudPanel.SetActive(false);
         }
 
@@ -95,7 +97,7 @@ namespace UI
             currentTasksText.text = "";
             foreach (KeyValuePair<string, int> task in currentTasks)
             {
-                currentTasksText.text +=  $"{task.Key}\n";
+                currentTasksText.text += $"{task.Key}\n";
             }
         }
 
@@ -113,7 +115,7 @@ namespace UI
         {
             availableTurretsText.text = $"{availableTurret}";
         }
-        
+
         public void HideHUDPanel()
         {
             hudPanel.SetActive(false);
@@ -154,6 +156,11 @@ namespace UI
         private void HandlePlayerHurt(float playerHp)
         {
             playerHealthText.text = $"{playerHp}%";
+        }
+
+        private void HandleVictory()
+        {
+            HideHUDPanel();
         }
     }
 }

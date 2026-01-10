@@ -21,6 +21,8 @@ namespace Entity.Enemy
         private List<Transform> _activeSpawnPos = new();
         private bool _gameRunning;
 
+        private Coroutine _spawnCoroutine;
+
         private void Awake()
         {
             EventHub.OnGameStart += OnGameStart;
@@ -35,25 +37,33 @@ namespace Entity.Enemy
             EventHub.OnGeneratorStart -= OnGeneratorStart;
         }
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
             InitSpawnPoints();
         }
 
-        private void OnGeneratorStart()
+        private void OnGameStart()
         {
-            StartCoroutine(SpawnLoop());
+            _gameRunning = true;
         }
 
         private void OnGameEnd()
         {
             _gameRunning = false;
+
+            if (_spawnCoroutine != null)
+            {
+                StopCoroutine(_spawnCoroutine);
+                _spawnCoroutine = null;
+            }
         }
 
-        private void OnGameStart()
+        private void OnGeneratorStart()
         {
-            _gameRunning = true;
+            if (_spawnCoroutine == null)
+            {
+                _spawnCoroutine = StartCoroutine(SpawnLoop());
+            }
         }
 
         private void InitSpawnPoints()
@@ -65,7 +75,6 @@ namespace Entity.Enemy
             }
         }
 
-        //TODO: WIP
         private IEnumerator SpawnLoop()
         {
             while (_gameRunning)
@@ -74,7 +83,16 @@ namespace Entity.Enemy
 
                 if (currentEnemies < maxEnemies)
                 {
-                    for (int i = 0; i < maxEnemies; i++)
+                    int spawnCount = Mathf.Clamp(
+                        Random.Range(
+                            (maxEnemies - currentEnemies) / 2,
+                            maxEnemies - currentEnemies
+                        ),
+                        1,
+                        maxEnemies // hard cap per interval
+                    );
+
+                    for (int i = 0; i < spawnCount; i++)
                     {
                         SpawnEnemy();
                     }
@@ -82,11 +100,13 @@ namespace Entity.Enemy
 
                 yield return new WaitForSeconds(checkInterval);
             }
+
+            _spawnCoroutine = null;
         }
 
         private void SpawnEnemy()
         {
-            if (_activeSpawnPos.Count == 0)
+            if (_activeSpawnPos.Count == 0 || enemyPrefabs.Length == 0)
             {
                 return;
             }
@@ -95,29 +115,29 @@ namespace Entity.Enemy
 
             if (GetRandomPointOnNavMesh(spawnPoint.position, spawnRadius, out Vector3 spawnPosition))
             {
-                Instantiate(enemyPrefabs[Random.Range(0, enemyPrefabs.Length)], spawnPosition, spawnPoint.rotation);
+                Instantiate(
+                    enemyPrefabs[Random.Range(0, enemyPrefabs.Length)],
+                    spawnPosition,
+                    spawnPoint.rotation
+                );
             }
             else
             {
-                Instantiate(enemyPrefabs[Random.Range(0, enemyPrefabs.Length)],
+                Instantiate(
+                    enemyPrefabs[Random.Range(0, enemyPrefabs.Length)],
                     spawnPoint.position,
-                    spawnPoint.rotation);
+                    spawnPoint.rotation
+                );
             }
-        }
-
-        public void SpawnEnemies(int count)
-        {
-            return;
         }
 
         public bool GetRandomPointOnNavMesh(Vector3 center, float range, out Vector3 result)
         {
             Vector3 randomPoint = center + Random.insideUnitSphere * range;
 
-            NavMeshHit meshHit;
-            if (NavMesh.SamplePosition(randomPoint, out meshHit, 1.0f, NavMesh.AllAreas))
+            if (NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
             {
-                result = meshHit.position;
+                result = hit.position;
                 return true;
             }
 

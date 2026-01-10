@@ -40,6 +40,7 @@ namespace Entity.Turret.TurretStateMachine
             if (_timeOnTarget >= _controller.lockOnTime)
             {
                 _controller.Fire();
+                _controller.GetSFXController().StartFiring();
                 _timeOnTarget = 0;
             }
             

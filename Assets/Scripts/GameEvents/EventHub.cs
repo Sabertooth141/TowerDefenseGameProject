@@ -14,8 +14,10 @@ namespace GameEvents
         public static event Action OnGameEnd;
         public static event Action OnStartScene;
         public static event Action OnPlayerControl;
+        public static event Action OnVictory;
         
         //generator events
+        public static event Action OnGeneratorStarting;
         public static event Action OnGeneratorStart;
         public static event Action OnTryTurnOffGenerator;
         public static event Action OnStopTurnOffGenerator;
@@ -38,6 +40,13 @@ namespace GameEvents
         
         // player events
         public static event Action<float> OnPlayerHurt;
+        
+        // SFX events
+        public static event Action OnBGMStart;
+        public static event Action OnBGMEnd;
+        public static event Action OnAlarmStart;
+        public static event Action OnAlarmEnd;
+        public static event Action OnMusicAllStop;
         
         // event trigger
         public static void TriggerEnemyDied(Entity.Entity enemy)
@@ -94,6 +103,11 @@ namespace GameEvents
         {
             OnUploadFileComplete?.Invoke();
         }
+
+        public static void TriggerOnGeneratorStarting()
+        {
+            OnGeneratorStarting?.Invoke();
+        }
         
         public static void TriggerOnGeneratorStart()
         {
@@ -133,6 +147,36 @@ namespace GameEvents
         public static void TriggerOnTerminalRegistered()
         {
             OnTerminalsRegistered?.Invoke();
+        }
+
+        public static void TriggerOnBGMStart()
+        {
+            OnBGMStart?.Invoke();
+        }
+
+        public static void TriggerOnBGMEnd()
+        {
+            OnBGMEnd?.Invoke();
+        }
+
+        public static void TriggerOnAlarmStart()
+        {
+            OnAlarmStart?.Invoke();
+        }
+
+        public static void TriggerOnAlarmEnd()
+        {
+            OnAlarmEnd?.Invoke();
+        }
+
+        public static void TriggerOnMusicAllStop()
+        {
+            OnMusicAllStop?.Invoke();
+        }
+
+        public static void TriggerOnVictory()
+        {
+            OnVictory?.Invoke();
         }
     }
 }

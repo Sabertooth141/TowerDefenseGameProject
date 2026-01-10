@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections;
 using Entity.Enemy.EnemyPathfinding;
 using Entity.Player;
 using GameEvents;
 using Misc;
+using Misc.Generator;
 using UnityEngine;
-using UnityEngine.AI;
-using UnityEngine.PlayerLoop;
 
 namespace Entity.Enemy
 {
@@ -14,6 +14,11 @@ namespace Entity.Enemy
         [Header("Enemy Settings")]
         public float damage = 20.0f;
         public float attackCooldown = 2.0f;
+        public float staggerTime = 2.0f;
+
+        [Header("Knockback Settings")]
+        [SerializeField] private float knockbackForce = 6f;
+        [SerializeField] private float knockbackBlendTime = 0.25f;
 
         [Header("References")]
         [SerializeField] private SphereCollider sphereCollider;
@@ -26,6 +31,7 @@ namespace Entity.Enemy
         private Entity _attackTarget;
         private bool _inAttackCooldown;
         private GeneratorController _generator;
+        private Coroutine _currCoroutine;
 
         protected override void Start()
         {
@@ -33,54 +39,61 @@ namespace Entity.Enemy
 
             EnemyManager.Instance.RegisterEnemy(gameObject);
             _navMeshAgent.SetStoppingDistance(1);
+            _navMeshAgent.StartPathFinding();
         }
 
         private void Awake()
         {
             _navMeshAgent = GetComponent<EnemyNavAgentController>();
-            _navMeshAgent.StartPathFinding();
 
             _isActive = true;
             _isAttacking = false;
 
             if (_navMeshAgent == null)
-            {
                 Debug.LogError("EnemyController: NavMeshAgent is null");
-            }
 
             if (sphereCollider == null)
-            {
                 Debug.LogError("EnemyController: Sphere Collider is null");
-            }
         }
 
-        // Update is called once per frame
         protected override void Update()
         {
             if (!_isActive)
-            {
                 return;
-            }
 
             base.Update();
 
             if (_isAttacking)
-            {
                 Attack();
-            }
         }
 
         public override void TakeDamage(float damage)
         {
             base.TakeDamage(damage);
+
+            if (_currCoroutine != null)
+                StopCoroutine(_currCoroutine);
+
+            Vector3 knockDir = (transform.position - _attackTarget?.transform.position ?? Vector3.zero).normalized;
+            _currCoroutine = StartCoroutine(StaggerWithKnockback(knockDir));
+        }
+
+        private IEnumerator StaggerWithKnockback(Vector3 knockDirection)
+        {
+            _navMeshAgent.StopPathFinding();
+
+            _navMeshAgent.ApplyKnockback(knockDirection, knockbackForce, knockbackBlendTime);
+
+            yield return new WaitForSeconds(staggerTime);
+
+            _navMeshAgent.StartPathFinding();
+            _currCoroutine = null;
         }
 
         private void Attack()
         {
             if (_attackTarget == null)
-            {
                 return;
-            }
 
             if (!_inAttackCooldown)
             {
@@ -101,6 +114,13 @@ namespace Entity.Enemy
 
         protected override void Die()
         {
+            _isActive = false;
+
+            if (_currCoroutine != null)
+                StopCoroutine(_currCoroutine);
+
+            _navMeshAgent?.StopPathFinding();
+
             EventHub.TriggerEnemyDied(this);
             base.Die();
         }
@@ -130,9 +150,7 @@ namespace Entity.Enemy
             {
                 _generator = other.gameObject.GetComponent<GeneratorController>();
                 if (_generator.IsGeneratorRunning)
-                {
                     _generator.RegisterHacker(gameObject);
-                }
             }
         }
 

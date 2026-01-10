@@ -29,6 +29,7 @@ namespace Entity.Turret
         public bool HasTargets => targets.Count > 0;
         [SerializeField] private TurretLaserSightController laserSightController;
         [SerializeField] private FireVFXController fireVFXController;
+        [SerializeField] private WeaponSFXController fireSFXController;
         public LayerMask hitMask;
 
         private float _resetTimer;
@@ -118,9 +119,19 @@ namespace Entity.Turret
                 
                 if (hit.transform.CompareTag("Enemy"))
                 {
-                    hit.transform.gameObject.GetComponent<Entity>().TakeDamage(damage);
+                    Entity entity = hit.transform.gameObject.GetComponent<Entity>();
+                    if (entity == null)
+                    {
+                        entity = hit.transform.gameObject.GetComponentInParent<Entity>();
+                    }
+                    entity.TakeDamage(damage);
                 }
             }
+        }
+
+        public WeaponSFXController GetSFXController()
+        {
+            return fireSFXController;
         }
 
         private bool LOSDetection(Transform target)

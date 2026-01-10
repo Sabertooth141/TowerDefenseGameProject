@@ -35,6 +35,7 @@ namespace Terminal
         [SerializeField] protected TaskManager taskManager;
         [SerializeField] protected FileUploadController uploadController;
         [SerializeField] protected UIController uiController;
+        [SerializeField] private UISFXController sfxController;
 
         [Header("Terminal settings")]
         public int maxOutputLInes = 50;
@@ -43,6 +44,8 @@ namespace Terminal
         private bool _terminalOpen;
         private bool _terminalFocused;
         private bool _isExecutingCmd;
+        protected bool interactable;
+        
         private List<String> _outputLines = new();
         private Dictionary<String, TerminalCommand> _commands = new();
         private Dictionary<string, int> _storedDir = new();
@@ -61,6 +64,7 @@ namespace Terminal
             EventHub.OnGeneratorTurnOff += HandlePowerDown;
 
             cmdInput.onSubmit.AddListener(OnCommandSubmit);
+            cmdInput.onValueChanged.AddListener(OnCmdChanged);
 
             AddOutput("TERMINAL V2.4.1 INITIALIZED");
             AddOutput("TYPE 'HELP' FOR AVAILABLE COMMANDS");
@@ -79,11 +83,13 @@ namespace Terminal
 
         protected virtual void HandlePowerUp()
         {
+            interactable = true;
             terminalScreen.SetActive(true);
         }
 
         protected virtual void HandlePowerDown()
         {
+            interactable = false;
             if (_runningCoroutine != null)
             {
                 StopCoroutine(_runningCoroutine);
@@ -91,6 +97,11 @@ namespace Terminal
             }
             CloseTerminal();
             terminalScreen.SetActive(false);
+        }
+
+        public bool IsInteractable()
+        {
+            return interactable;
         }
 
         private void HandleOnCmdComplete()
@@ -234,6 +245,8 @@ namespace Terminal
         
         public void AddOutput(string output)
         {
+            sfxController.PlayTypingSFX();
+            
             if (_outputLines.Count >= 50)
             {
                 _outputLines.RemoveAt(0);
@@ -261,8 +274,14 @@ namespace Terminal
             outputText.text = string.Join("\n", _outputLines);
         }
 
+        private void OnCmdChanged(string cmd)
+        {
+            sfxController.PlayTypingSFX();
+        }
+
         private void OnCommandSubmit(string command)
         {
+            sfxController.PlayTypingSFX();
             if (string.IsNullOrWhiteSpace(command))
             {
                 cmdInput.ActivateInputField();

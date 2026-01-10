@@ -2,6 +2,7 @@ using System.Collections;
 using Entity.Player;
 using GameEvents;
 using Misc;
+using UI;
 using UnityEngine;
 
 namespace Terminal
@@ -45,6 +46,8 @@ namespace Terminal
             {
                 Debug.LogError("TerminalController: scrollRect is null");
             }
+
+            interactable = true;
         }
 
         protected override void Start()
@@ -78,8 +81,12 @@ namespace Terminal
         private IEnumerator StartReactor()
         {
             AddOutput("Initializing Generator Starting Sequence...");
+            yield return new WaitForSeconds(0.2f);
             AddOutput("---------------------------------------------");
             AddOutput(""); // placeholder for progress bar
+            
+            EventHub.TriggerOnGeneratorStarting();
+            
             int progressBarIndex = GetCurrentLineIndex() - 1;
 
             float progress = 0f;

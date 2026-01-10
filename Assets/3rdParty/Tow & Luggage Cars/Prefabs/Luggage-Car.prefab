@@ -627,7 +627,7 @@ GameObject:
   - component: {fileID: 5802978546763550458}
   - component: {fileID: 7433061079158276447}
   - component: {fileID: 4666713150346900885}
-  - component: {fileID: 8294831108993310804}
+  - component: {fileID: 5526019127908903862}
   m_Layer: 11
   m_Name: Luggage-Car
   m_TagString: Untagged
@@ -715,8 +715,8 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &8294831108993310804
-BoxCollider:
+--- !u!64 &5526019127908903862
+MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -733,9 +733,10 @@ BoxCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1.4169203, y: 1.0858963, z: 3.2649872}
-  m_Center: {x: 0.00000002980233, y: 0.13295199, z: 0.23360991}
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -5495902117074765545, guid: 097df6170036646a79e968ee71d8e2ba, type: 3}
 --- !u!1 &6987649464962020818
 GameObject:
   m_ObjectHideFlags: 0

@@ -17,6 +17,7 @@ namespace UI
         [SerializeField] private TMP_InputField cmdInput;
         [SerializeField] private TextMeshProUGUI outputText;
         [SerializeField] private ScrollRect scrollRect;
+        [SerializeField] private UISFXController sfxController;
 
         [Header("Terminal settings")]
         public int maxOutputLines = 50;
@@ -29,6 +30,7 @@ namespace UI
         private void Awake()
         {
             cmdInput.onSubmit.AddListener(OnCommandSubmit);
+            cmdInput.onValueChanged.AddListener(OnCommandChanged);
         }
 
         private void Start()
@@ -110,8 +112,14 @@ namespace UI
             yield return new WaitForSeconds(UnityEngine.Random.Range(min, max));
         }
 
+        private void OnCommandChanged(string cmd)
+        {
+            sfxController.PlayTypingSFX();
+        }
+
         private void OnCommandSubmit(string command)
         {
+            sfxController.PlayTypingSFX();
             if (string.IsNullOrWhiteSpace(command))
             {
                 cmdInput.ActivateInputField();
@@ -155,6 +163,7 @@ namespace UI
 
         public void AddOutput(string output)
         {
+            sfxController.PlayTypingSFX();
             if (_outputLines.Count >= maxOutputLines)
                 _outputLines.RemoveAt(0);
 

@@ -51,7 +51,8 @@ namespace Entity.Player
         // Shared particle system
         private ParticleSystem.EmitParams _emitParams;
 
-        private GameObject _laserDot;
+        private GameObject _laserDot1;
+        private GameObject _laserDot2;
 
         void Start()
         {
@@ -74,6 +75,9 @@ namespace Entity.Player
                         _volumetric1Transform = _volumetricBeam1.transform;
                     }
                 }
+                
+                _laserDot1 = Instantiate(laserDotPrefab);
+                _laserDot1.SetActive(false);
             }
         
             // Setup Laser 2
@@ -95,10 +99,10 @@ namespace Entity.Player
                         _volumetric2Transform = _volumetricBeam2.transform;
                     }
                 }
+                
+                _laserDot2 = Instantiate(laserDotPrefab);
+                _laserDot2.SetActive(false);
             }
-
-            _laserDot = Instantiate(laserDotPrefab);
-            _laserDot.SetActive(false);
         
             // Setup shared particle system
             if (enableParticles)
@@ -227,12 +231,13 @@ namespace Entity.Player
                     laserOrigin1, 
                     lineRenderer1, 
                     _volumetricBeam1, 
-                    _volumetric1Transform
+                    _volumetric1Transform,
+                    _laserDot1
                 );
             }
             else if (enableLaser1)
             {
-                HideLaserComponents(lineRenderer1, _volumetricBeam1);
+                HideLaserComponents(lineRenderer1, _volumetricBeam1, _laserDot1);
             }
         
             if (enableLaser2 && laserOrigin2 != null)
@@ -241,12 +246,13 @@ namespace Entity.Player
                     laserOrigin2, 
                     lineRenderer2, 
                     _volumetricBeam2, 
-                    _volumetric2Transform
+                    _volumetric2Transform,
+                    _laserDot2
                 );
             }
             else if (enableLaser2)
             {
-                HideLaserComponents(lineRenderer2, _volumetricBeam2);
+                HideLaserComponents(lineRenderer2, _volumetricBeam2, _laserDot2);
             }
         }
 
@@ -254,7 +260,8 @@ namespace Entity.Player
             Transform origin, 
             LineRenderer lr, 
             GameObject volBeam,
-            Transform volTransform
+            Transform volTransform,
+            GameObject laserDot
         )
         {
             Vector3 startPos = origin.position;
@@ -265,12 +272,12 @@ namespace Entity.Player
             {
                 DrawBeam(startPos, hit.point, lr);
 
-                if (!_laserDot.activeSelf)
+                if (!laserDot.activeSelf)
                 {
-                    _laserDot.SetActive(true);
+                    laserDot.SetActive(true);
                 }
                 
-                _laserDot.transform.position = hit.point;
+                laserDot.transform.position = hit.point;
                 
                 if (enableVolumetric && volBeam != null)
                 {
@@ -286,6 +293,11 @@ namespace Entity.Player
             {
                 Vector3 endPos = origin.position + direction * laserMaxDistance;
                 DrawBeam(startPos, endPos, lr);
+                
+                if (laserDot.activeSelf)
+                {
+                    laserDot.SetActive(false);
+                }
                 
                 if (enableVolumetric && volBeam != null)
                 {
@@ -352,7 +364,7 @@ namespace Entity.Player
             }
         }
 
-        void HideLaserComponents(LineRenderer lr, GameObject volBeam)
+        void HideLaserComponents(LineRenderer lr, GameObject volBeam, GameObject laserDot)
         {
             if (lr != null && lr.enabled)
             {
@@ -364,9 +376,9 @@ namespace Entity.Player
                 volBeam.SetActive(false);
             }
 
-            if (_laserDot != null && _laserDot.activeSelf)
+            if (laserDot != null && laserDot.activeSelf)
             {
-                _laserDot.SetActive(false);
+                laserDot.SetActive(false);
             }
         }
 
@@ -378,8 +390,8 @@ namespace Entity.Player
         
             if (!active)
             {
-                HideLaserComponents(lineRenderer1, _volumetricBeam1);
-                HideLaserComponents(lineRenderer2, _volumetricBeam2);
+                HideLaserComponents(lineRenderer1, _volumetricBeam1, _laserDot1);
+                HideLaserComponents(lineRenderer2, _volumetricBeam2, _laserDot2);
             }
         }
 

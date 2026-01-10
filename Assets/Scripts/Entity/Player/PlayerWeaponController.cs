@@ -19,6 +19,7 @@ namespace Entity.Player
         [SerializeField] private PlayerInputReader inputReader;
         [SerializeField] private RecoilController recoilController;
         [SerializeField] private FireVFXController fireVFXController;
+        [SerializeField] private WeaponSFXController sfxController;
         
         [Header("Weapon Settings")]
         public float fireRate = 0.1f;
@@ -26,6 +27,7 @@ namespace Entity.Player
         public float range = 200f;
 
         private float _nextFireTime = 0;
+        private bool _wasFiringLastFrame = false;
 
         private void Awake()
         {
@@ -38,18 +40,26 @@ namespace Entity.Player
         // Update is called once per frame
         void Update()
         {
-            if (cameraController.IsAiming() && inputReader.ShootPressed && Time.time >= _nextFireTime)
+            bool isFiring = cameraController.IsAiming() && inputReader.ShootPressed;
+            if (isFiring && Time.time >= _nextFireTime)
             {
                 Shoot();
                 _nextFireTime = Time.time + fireRate;
             }
-            recoilController.ResetRecoil();
+
+            if (_wasFiringLastFrame && !isFiring)
+            {
+                recoilController.ResetRecoil();
+            }
+            
+            _wasFiringLastFrame = isFiring;
         }
 
         private void Shoot()
         {
             recoilController.ApplyRecoil();
             fireVFXController.PlayShotEffects(cameraController.GetRay().direction);
+            sfxController.StartFiring();
             if (Physics.Raycast(cameraController.GetRay(), out RaycastHit hit, range, hitLayer))
             {
                 fireVFXController.PlayHitEffect(hit);
@@ -57,7 +67,12 @@ namespace Entity.Player
                 
                 if (hit.transform.CompareTag("Enemy"))
                 {
-                    hit.transform.gameObject.GetComponent<Entity>().TakeDamage(damage);
+                    Entity entity = hit.transform.gameObject.GetComponent<Entity>();
+                    if (entity == null)
+                    {
+                        entity = hit.transform.gameObject.GetComponentInParent<Entity>();
+                    }
+                    entity.TakeDamage(damage);
                 }
             }
         }

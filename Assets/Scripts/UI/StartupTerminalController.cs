@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using GameEvents;
+using Misc;
 using UnityEngine.EventSystems;
 using Terminal;
 using TMPro;
@@ -20,6 +21,7 @@ namespace UI
         [SerializeField] private ScrollRect scrollRect;
         [SerializeField] private UIController uiController;
         [SerializeField] private Image startupBackground;
+        [SerializeField] private UISFXController sfxController;
 
         [Header("Terminal settings")]
         public int maxOutputLInes = 50;
@@ -32,6 +34,7 @@ namespace UI
         private void Awake()
         {
             cmdInput.onSubmit.AddListener(OnCommandSubmit);
+            cmdInput.onValueChanged.AddListener(OnCommandChanged);
             startupUIPanel.SetActive(true);
         }
 
@@ -158,6 +161,8 @@ namespace UI
             yield return RunCheck("power.mgmt");
 
             StartCoroutine(FadeBackground(6f, 0f));
+            EventHub.TriggerOnBGMStart();       // START BGM
+            
             AddOutput("");
 
             AddOutput("Running system checks...");
@@ -229,6 +234,7 @@ namespace UI
             string finalResult = result ?? Ok("OK");
             _outputLines[^1] = $" {label} ............... {finalResult}";
             outputText.text = string.Join("\n", _outputLines);
+            sfxController.PlayTypingSFX();
 
             Canvas.ForceUpdateCanvases();
             yield return RandomWait(resultMin, resultMax);
@@ -241,6 +247,8 @@ namespace UI
 
         private void OnCommandSubmit(string command)
         {
+            sfxController.PlayTypingSFX();
+            
             if (string.IsNullOrWhiteSpace(command))
             {
                 cmdInput.ActivateInputField();
@@ -283,6 +291,11 @@ namespace UI
             EventHub.TriggerOnCommandCompleted();
         }
 
+        private void OnCommandChanged(string cmd)
+        {
+            sfxController.PlayTypingSFX();
+        }
+
         public void AddOutput(string output)
         {
             if (_outputLines.Count >= maxOutputLInes)
@@ -295,6 +308,8 @@ namespace UI
 
             if (scrollRect != null)
                 scrollRect.verticalNormalizedPosition = 0f;
+            
+            sfxController.PlayTypingSFX();
         }
 
         private void RegisterCmd(string cmdName, string description, Action<string[]> callback)
@@ -324,7 +339,7 @@ namespace UI
         {
             _isExecutingCmd = false;
         }
-        
+
         private void OnApplicationFocus(bool hasFocus)
         {
             if (!hasFocus)
@@ -336,7 +351,7 @@ namespace UI
         private IEnumerator DelayedForceFocus()
         {
             yield return null;
-            yield return null; 
+            yield return null;
             ForceFocusInput();
         }
 
@@ -357,16 +372,13 @@ namespace UI
 
         private IEnumerator RebindInputField()
         {
-            yield return null; 
             yield return null;
-
-
+            yield return null;
+            
             EventSystem.current.SetSelectedGameObject(cmdInput.gameObject);
-
-
+            
             cmdInput.ActivateInputField();
-
- 
+            
             cmdInput.Select();
             cmdInput.MoveTextEnd(false);
         }
@@ -375,7 +387,7 @@ namespace UI
         {
             StartCoroutine(DelayedForceFocus());
         }
-        
+
         private void OnApplicationPause(bool paused)
         {
             if (!paused)

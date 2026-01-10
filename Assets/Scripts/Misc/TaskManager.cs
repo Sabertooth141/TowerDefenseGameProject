@@ -200,7 +200,7 @@ namespace Misc
             {
                 if (_taskFiles.Count <= 0)
                 {
-                    UnityEngine.SceneManagement.SceneManager.LoadScene("VictoryScene");
+                    EventHub.TriggerOnVictory();
                 }
                 EventHub.TriggerOnUploadFileComplete();
                 return true;    
