@@ -16,6 +16,9 @@ namespace Misc
 
         [Header("SFX")]
         [SerializeField] private AudioSource hoverSFX;
+        [SerializeField] private AudioSource hitAlert;
+
+        private bool _hurtIgnore = true;
         
         private void Start()
         {
@@ -24,6 +27,7 @@ namespace Misc
             EventHub.OnAlarmStart += StartAlarm;
             EventHub.OnAlarmEnd += StopAlarm;
             EventHub.OnMusicAllStop += StopAllSounds;
+            EventHub.OnPlayerHurt += HandleHurt;
         }
 
         private void OnDestroy()
@@ -33,6 +37,7 @@ namespace Misc
             EventHub.OnAlarmStart -= StartAlarm;
             EventHub.OnAlarmEnd -= StopAlarm;
             EventHub.OnMusicAllStop -= StopAllSounds;
+            EventHub.OnPlayerHurt -= HandleHurt;
         }
 
         public void StartBGM()
@@ -91,6 +96,22 @@ namespace Misc
             audioSource.volume = 0;
             audioSource.Stop();
             audioSource.volume = originalVolume;
+        }
+        
+        private void HandleHurt(float dmg)
+        {
+            if (_hurtIgnore)
+            {
+                _hurtIgnore = false;
+                return;
+            }
+            
+            if (hitAlert.isPlaying)
+            {
+                hitAlert.Stop();
+            }
+            
+            hitAlert.Play();
         }
 
         public void StopAllSounds()

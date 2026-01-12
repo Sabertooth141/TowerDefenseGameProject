@@ -74,7 +74,13 @@ namespace Entity.Player
 
         private IEnumerator PlayMuzzleFlashLight()
         {
+            if (CurrentFiringPoint == null)
+            {
+                yield break;
+            }
+            
             GameObject currLight = CurrentFiringPoint.muzzleFlashLight;
+            
             currLight.SetActive(true);
 
             yield return null;

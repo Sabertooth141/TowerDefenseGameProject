@@ -48,15 +48,21 @@ namespace Entity.Player
         [Header("ADS Rotation Handling")]
         public LayerMask adsRotationMask;
 
+        [Header("Damage Settings")]
+        public float damageRandomOffset = 5;
+        public float damageCooldown = 2.0f;
+
         private Vector2 _input;
         private RaycastHit _slopeHit;
-
+        private float _damangeCDTimer = 0;
+        
         private bool _isJumping;
         private bool _isGrounded;
         private bool _onSlope;
         private bool _canMove;
         private bool _canLook;
         private bool _canDamage = true;
+        private bool _wasDamaged = false;
 
         private float _currSpeed;
         private Vector3 _moveDirection;
@@ -119,6 +125,21 @@ namespace Entity.Player
             base.Update();
 
             HandleRotation();
+            
+            if (_wasDamaged)
+            {
+                HandleDamageCoolDown();
+            }
+        }
+        private void HandleDamageCoolDown()
+        {
+            if (_damangeCDTimer > damageCooldown)
+            {
+                _damangeCDTimer = 0;
+                _wasDamaged = false;
+            }
+            
+            _damangeCDTimer += Time.deltaTime;
         }
 
         private void FixedUpdate()
@@ -411,6 +432,7 @@ namespace Entity.Player
 
             if (other.CompareTag("TurretInteraction"))
             {
+                
                 uiController.EnableInteraction("[F] Destroy Turret");
                 if (_inputReader.InteractPressed)
                 {
@@ -426,10 +448,21 @@ namespace Entity.Player
             {
                 StartCoroutine(MoveToSpawnPoint());
             }
+
+            if (other.CompareTag("TurretInteraction") || other.CompareTag("ReactorTerminal") || other.CompareTag("Terminal"))
+            {
+                EventHub.TriggerOnEnableInteract();
+            }
+            
         }
 
         private IEnumerator MoveToSpawnPoint()
         {
+            if (_rb == null)
+            {
+                yield break;
+            }
+            
             Transform currTransform = transform;
 
             DisableMovement();
@@ -450,6 +483,7 @@ namespace Entity.Player
 
         private void OnTriggerExit(Collider other)
         {
+            EventHub.TriggerOnDisableInteract();
             uiController.DisableInteraction();
         }
 
@@ -457,6 +491,8 @@ namespace Entity.Player
         {
             _canMove = false;
             _canLook = false;
+            
+            _rb.linearVelocity = Vector3.zero;
             cameraController.DisableCameraMovement();
         }
 
@@ -474,9 +510,17 @@ namespace Entity.Player
                 return;
             }
 
-            base.TakeDamage(Random.Range(damage - 5, damage + 5));
+            if (_wasDamaged)
+            {
+                return;
+            }
+            
+            _wasDamaged = true;
 
-            EventHub.TriggerOnPlayerHurt((Mathf.Floor((currHp / maxHp) * 10f) / 10f) * 100f);
+            base.TakeDamage(Random.Range(damage - damageRandomOffset, damage + damageRandomOffset));
+
+            float percentage = Mathf.Floor((currHp / maxHp * 100f) * 10f) / 10f;
+            EventHub.TriggerOnPlayerHurt(percentage);
         }
 
         protected override void Die()

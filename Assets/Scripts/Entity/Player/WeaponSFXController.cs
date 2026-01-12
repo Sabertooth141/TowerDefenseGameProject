@@ -1,11 +1,14 @@
+using System;
+using GameEvents;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.XR;
+using Random = UnityEngine.Random;
 
 namespace Entity.Player
 {
     public class WeaponSFXController : MonoBehaviour
     {
-        [FormerlySerializedAs("fireLoop")]
         [Header("Audio Sources")]
         [SerializeField] private AudioSource gunshot;
 

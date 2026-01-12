@@ -202,7 +202,7 @@ namespace Misc
                 {
                     EventHub.TriggerOnVictory();
                 }
-                EventHub.TriggerOnUploadFileComplete();
+                EventHub.TriggerOnUploadFileComplete(filename);
                 return true;    
             }
 

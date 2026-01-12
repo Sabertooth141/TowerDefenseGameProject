@@ -20,14 +20,16 @@ namespace Entity.Enemy
 
         private List<Transform> _activeSpawnPos = new();
         private bool _gameRunning;
-
+        
         private Coroutine _spawnCoroutine;
+        private int _enemiesToSpawn;
 
         private void Awake()
         {
             EventHub.OnGameStart += OnGameStart;
             EventHub.OnGameEnd += OnGameEnd;
             EventHub.OnGeneratorStart += OnGeneratorStart;
+            EventHub.OnGeneratorTurnOff += HandleGeneratorTurnOff;
         }
 
         private void OnDestroy()
@@ -35,11 +37,17 @@ namespace Entity.Enemy
             EventHub.OnGameStart -= OnGameStart;
             EventHub.OnGameEnd -= OnGameEnd;
             EventHub.OnGeneratorStart -= OnGeneratorStart;
+            EventHub.OnGeneratorTurnOff -= HandleGeneratorTurnOff;
         }
 
         void Start()
         {
             InitSpawnPoints();
+        }
+
+        private void HandleGeneratorTurnOff()
+        {
+            _enemiesToSpawn = maxEnemies / 2;
         }
 
         private void OnGameStart()
@@ -64,6 +72,8 @@ namespace Entity.Enemy
             {
                 _spawnCoroutine = StartCoroutine(SpawnLoop());
             }
+            
+            _enemiesToSpawn = maxEnemies;
         }
 
         private void InitSpawnPoints()
@@ -85,11 +95,11 @@ namespace Entity.Enemy
                 {
                     int spawnCount = Mathf.Clamp(
                         Random.Range(
-                            (maxEnemies - currentEnemies) / 2,
-                            maxEnemies - currentEnemies
+                            _enemiesToSpawn - currentEnemies - 5,
+                            _enemiesToSpawn - currentEnemies
                         ),
                         1,
-                        maxEnemies // hard cap per interval
+                        _enemiesToSpawn // hard cap per interval
                     );
 
                     for (int i = 0; i < spawnCount; i++)

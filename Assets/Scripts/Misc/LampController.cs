@@ -68,6 +68,11 @@ namespace Misc
 
         private IEnumerator StartLightUp()
         {
+            if (_light == null)
+            {
+                yield break;
+            }
+            
             _light.intensity = 0;
             _light.enabled = true;
 

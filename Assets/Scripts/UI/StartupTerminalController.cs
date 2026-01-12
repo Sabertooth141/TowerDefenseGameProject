@@ -6,6 +6,7 @@ using Misc;
 using UnityEngine.EventSystems;
 using Terminal;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = System.Random;
@@ -58,7 +59,69 @@ namespace UI
         private IEnumerator HandleMissionConfirmation()
         {
             cmdInput.interactable = false;
+            
+            AddOutput("Establishing Connection...");
+            yield return new WaitForSeconds(0.5f);
+            AddOutput("...");
+            yield return new WaitForSeconds(0.5f);
+            AddOutput("...");
+            yield return new WaitForSeconds(0.5f);
+            AddOutput("...");
+            yield return RandomWait(0.5f, 0.6f);
+            AddOutput("");
 
+            AddOutput("CONNECTION ESTABLISHED");
+            yield return RandomWait(0.2f, 0.3f);
+            AddOutput("Location: SITE-" + UnityEngine.Random.Range(10, 99) + " COMMAND CENTER");
+            yield return RandomWait(0.1f, 0.2f);
+            AddOutput($"System Time: {System.DateTime.Now:HH:mm:ss} UTC");
+            yield return RandomWait(0.3f, 0.5f);
+            AddOutput("");
+
+            AddOutput("Operator authentication required...");
+            yield return RandomWait(0.4f, 0.6f);
+            AddOutput("Verifying credentials...");
+            yield return RandomWait(0.6f, 1.0f);
+            AddOutput("[OK] Biometric signature confirmed");
+            yield return RandomWait(0.1f, 0.2f);
+            AddOutput("[OK] Authorization level: OMEGA-" + UnityEngine.Random.Range(1, 5));
+            yield return RandomWait(0.1f, 0.2f);
+            AddOutput("[OK] Neural link synchronized");
+            yield return RandomWait(0.3f, 0.5f);
+            AddOutput("");
+
+            AddOutput($"Welcome back, Operator {UnityEngine.Random.Range(1000, 9999)}.");
+            yield return RandomWait(0.2f, 0.4f);
+            AddOutput("Accessing mission database...");
+            yield return RandomWait(0.5f, 0.8f);
+            AddOutput("");
+            AddOutput("");
+            yield return RandomWait(1f, 1.5f);
+
+            string[] technicalGibberish = new string[]
+            {
+                "Initializing quantum encryption protocols...",
+                "Loading mission parameters from secure vault...",
+                "Decrypting classified data streams...",
+                "[OK] Handshake confirmed - latency 247ms",
+                "Decompressing mission archive (2.4GB)...",
+                "[OK] Mission package integrity verified",
+                "Preparing tactical overlay...",
+                "Finalizing operational security parameters...",
+                "[OK] All systems nominal - mission package ready"
+            };
+
+            foreach (string line in technicalGibberish)
+            {
+                AddOutput(line);
+                yield return RandomWait(0.01f, 0.05f);
+            }
+
+            yield return RandomWait(0.1f, 0.2f);
+            AddOutput("...");
+            AddOutput("");
+            AddOutput("");
+            yield return RandomWait(1f, 2f);
             AddOutput("=== OPERATION ICARUS ===");
             yield return RandomWait(0.2f, 0.4f);
             EventHub.TriggerOnStartScene();
@@ -161,8 +224,8 @@ namespace UI
             yield return RunCheck("power.mgmt");
 
             StartCoroutine(FadeBackground(6f, 0f));
-            EventHub.TriggerOnBGMStart();       // START BGM
-            
+            EventHub.TriggerOnBGMStart(); // START BGM
+
             AddOutput("");
 
             AddOutput("Running system checks...");
@@ -248,7 +311,7 @@ namespace UI
         private void OnCommandSubmit(string command)
         {
             sfxController.PlayTypingSFX();
-            
+
             if (string.IsNullOrWhiteSpace(command))
             {
                 cmdInput.ActivateInputField();
@@ -308,7 +371,7 @@ namespace UI
 
             if (scrollRect != null)
                 scrollRect.verticalNormalizedPosition = 0f;
-            
+
             sfxController.PlayTypingSFX();
         }
 
@@ -374,11 +437,11 @@ namespace UI
         {
             yield return null;
             yield return null;
-            
+
             EventSystem.current.SetSelectedGameObject(cmdInput.gameObject);
-            
+
             cmdInput.ActivateInputField();
-            
+
             cmdInput.Select();
             cmdInput.MoveTextEnd(false);
         }

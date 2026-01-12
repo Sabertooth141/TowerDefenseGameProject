@@ -32,7 +32,7 @@ namespace GameEvents
         public static event Action<bool, Transform> OnTerminalStatusChanged;
         public static event Action OnExecuteCommand;
         public static event Action OnCommandComplete;
-        public static event Action OnUploadFileComplete;
+        public static event Action<string> OnUploadFileComplete;
         
         // internal logic events
         public static event Action OnFilesGenerated;
@@ -40,6 +40,8 @@ namespace GameEvents
         
         // player events
         public static event Action<float> OnPlayerHurt;
+        public static event Action OnEnableInteract;
+        public static event Action OnDisableInteract;
         
         // SFX events
         public static event Action OnBGMStart;
@@ -99,9 +101,9 @@ namespace GameEvents
             OnCommandComplete?.Invoke();
         }
 
-        public static void TriggerOnUploadFileComplete()
+        public static void TriggerOnUploadFileComplete(string filename)
         {
-            OnUploadFileComplete?.Invoke();
+            OnUploadFileComplete?.Invoke(filename);
         }
 
         public static void TriggerOnGeneratorStarting()
@@ -178,5 +180,16 @@ namespace GameEvents
         {
             OnVictory?.Invoke();
         }
+        
+        public static void TriggerOnEnableInteract()
+        {
+            OnEnableInteract?.Invoke();
+        }
+
+        public static void TriggerOnDisableInteract()
+        {
+            OnDisableInteract?.Invoke();
+        }
+
     }
 }

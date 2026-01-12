@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Entity.Turret;
 using GameEvents;
@@ -22,6 +23,8 @@ namespace UI
         [SerializeField] private String generatorUnderHackMsg;
         [SerializeField] private String generatorHackedMsg;
         [SerializeField] private TextMeshProUGUI playerHealthText;
+        [SerializeField] private GameObject hurtWarning;
+        [SerializeField] private TextMeshProUGUI uploadCompleteText;
 
         private void Start()
         {
@@ -87,10 +90,24 @@ namespace UI
             interactionText.text = "";
             generatorMsgText.text = "";
             enemiesAlertText.SetActive(false);
+            hurtWarning.SetActive(false);
+            uploadCompleteText.text = "";
 
             hudPanel.SetActive(false);
         }
 
+        private void HandleTaskDisplay(string filename)
+        {
+            Dictionary<string, int> currentTasks = TaskManager.Instance.GetTaskFiles();
+            currentTasksText.text = "";
+            foreach (KeyValuePair<string, int> task in currentTasks)
+            {
+                currentTasksText.text += $"{task.Key}\n";
+            }
+            
+            StartCoroutine(HandleUploadTextChange(filename));
+        }
+        
         private void HandleTaskDisplay()
         {
             Dictionary<string, int> currentTasks = TaskManager.Instance.GetTaskFiles();
@@ -155,7 +172,54 @@ namespace UI
 
         private void HandlePlayerHurt(float playerHp)
         {
+            StartCoroutine(ChangeElements(playerHp));
+        }
+
+        private IEnumerator ChangeElements(float playerHp)
+        {
+            if (hurtWarning == null)
+            {
+                yield break;
+            }
+
+            if (playerHealthText == null)
+            {
+                yield break;
+            }
+            
+            hurtWarning.SetActive(true);
+            playerHealthText.text = "";
+            yield return new WaitForSeconds(0.15f);
             playerHealthText.text = $"{playerHp}%";
+            yield return new WaitForSeconds(0.15f);
+            playerHealthText.text = "";
+            hurtWarning.SetActive(false);
+            yield return new WaitForSeconds(0.13f);
+            playerHealthText.text = $"{playerHp}%";
+            hurtWarning.SetActive(true);
+            yield return new WaitForSeconds(0.2f);
+            hurtWarning.SetActive(false);
+        }
+        
+        private IEnumerator HandleUploadTextChange(string filename)
+        {
+            if (filename == null)
+            {
+                yield break;
+            }
+
+            if (uploadCompleteText == null)
+            {
+                yield break;
+            }
+            
+            uploadCompleteText.text = $"<{filename}> UPLOAD COMPLETE";
+            yield return new WaitForSeconds(0.5f);
+            uploadCompleteText.text = "";
+            yield return new WaitForSeconds(0.2f);
+            uploadCompleteText.text = $"<{filename}> UPLOAD COMPLETE";
+            yield return new WaitForSeconds(0.5f);
+            uploadCompleteText.text = "";
         }
 
         private void HandleVictory()

@@ -85,7 +85,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ce4e3df287c47b1b71db890ecd8e04c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Entity.Enemy.EnemyController
-  maxHp: 200
+  maxHp: 150
   currHp: 0
   damage: 15
   attackCooldown: 2
@@ -234,6 +234,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7564696133760199648, guid: a2baf755580658246ab3d05ef253813d, type: 3}
       propertyPath: m_Radius
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564696133760199648, guid: a2baf755580658246ab3d05ef253813d, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564696133760199648, guid: a2baf755580658246ab3d05ef253813d, type: 3}
+      propertyPath: m_IsTrigger
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []

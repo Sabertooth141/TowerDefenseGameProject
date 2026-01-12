@@ -1,5 +1,6 @@
 using System;
 using GameEvents;
+using UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Interactions;
@@ -18,6 +19,9 @@ namespace Entity.Player
         public bool InteractPressed { get; private set; }
 
         private PlayerControls _controls;
+        
+        [Header("References")]
+        [SerializeField] private HoldToInteract holdToInteract;
 
         private void Awake()
         {
@@ -59,15 +63,31 @@ namespace Entity.Player
                 }
             };
 
+            _controls.Player.Interact.started += ctx =>
+            {
+                if (ctx.interaction is HoldInteraction)
+                {
+                    holdToInteract?.OnStartedInteract(ctx);
+                }
+            };
+
             _controls.Player.Interact.performed += ctx =>
             {
                 if (ctx.interaction is HoldInteraction)
                 {
+                    holdToInteract?.OnPerformedInteract(ctx);
                     InteractPressed = true;
                 }
             };
-            
-            _controls.Player.Interact.canceled += ctx => InteractPressed = false;
+
+            _controls.Player.Interact.canceled += ctx =>
+            {
+                if (ctx.interaction is HoldInteraction)
+                {
+                    holdToInteract?.OnCanceledInteract(ctx);
+                }
+                InteractPressed = false;
+            };
         }
 
         private void OnEnable()

@@ -36,6 +36,7 @@ namespace Terminal
         [SerializeField] protected FileUploadController uploadController;
         [SerializeField] protected UIController uiController;
         [SerializeField] private UISFXController sfxController;
+        [SerializeField] private SphereCollider interactionTrigger;
 
         [Header("Terminal settings")]
         public int maxOutputLInes = 50;
@@ -45,6 +46,7 @@ namespace Terminal
         private bool _terminalFocused;
         private bool _isExecutingCmd;
         protected bool interactable;
+        private bool _isWaitingForInteractRelease;
         
         private List<String> _outputLines = new();
         private Dictionary<String, TerminalCommand> _commands = new();
@@ -85,6 +87,7 @@ namespace Terminal
         {
             interactable = true;
             terminalScreen.SetActive(true);
+            interactionTrigger.enabled = true;
         }
 
         protected virtual void HandlePowerDown()
@@ -97,6 +100,7 @@ namespace Terminal
             }
             CloseTerminal();
             terminalScreen.SetActive(false);
+            interactionTrigger.enabled = false;
         }
 
         public bool IsInteractable()
@@ -157,6 +161,7 @@ namespace Terminal
             }
 
             terminalScreen.SetActive(false);
+            interactionTrigger.enabled = false;
         }
 
         // Update is called once per frame
@@ -184,6 +189,8 @@ namespace Terminal
             }
 
             _terminalOpen = true;
+            _isWaitingForInteractRelease = true;
+            
             FocusTerminal();
         }
 
@@ -205,14 +212,27 @@ namespace Terminal
             uiController.HideHUDPanel();
             terminalCamera.enabled = true;
 
-            UnlockInput();
+            LockInput();
+            StartCoroutine(WaitForInteractRelease());
 
+            EventHub.TriggerOnTerminalStatusChanged(true, terminalScreen.transform);
+        }
+
+        private IEnumerator WaitForInteractRelease()
+        {
+            while (Keyboard.current.fKey.isPressed)
+            {
+                yield return null;
+            }
+            
+            yield return null;
+            
+            UnlockInput();
+            
             int len = cmdInput.text.Length;
             cmdInput.caretPosition = len;
             cmdInput.selectionAnchorPosition = len;
             cmdInput.selectionFocusPosition = len;
-
-            EventHub.TriggerOnTerminalStatusChanged(true, terminalScreen.transform);
         }
 
         public void UnfocusTerminal()
@@ -245,6 +265,11 @@ namespace Terminal
         
         public void AddOutput(string output)
         {
+            if (outputText == null)
+            {
+                return;
+            }
+            
             sfxController.PlayTypingSFX();
             
             if (_outputLines.Count >= 50)
